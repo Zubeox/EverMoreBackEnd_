@@ -5,7 +5,7 @@ import { Contact } from '../types';
 export async function submitContact(
   contact: Omit<Contact, 'id' | 'created_at'>
 ): Promise<Contact> {
-  const { data, error } = await supabaseAdmin
+  const { data, error } = await supabaseClient
     .from('contacts')
     .insert(contact)
     .select()
