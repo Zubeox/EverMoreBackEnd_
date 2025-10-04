@@ -79,15 +79,39 @@ export const ClientGalleryForm: React.FC<ClientGalleryFormProps> = ({
     setTimeout(() => setCopiedCode(false), 2000);
   };
 
-  const handleImageUpload = (newImages: CloudinaryImage[]) => {
-    setUploadedImages(prev => [...prev, ...newImages]);
-    const imageIds = newImages.map(img => img.public_id);
-    setFormData(prev => ({
-      ...prev,
-      images: [...prev.images, ...imageIds],
-      cover_image: prev.cover_image || imageIds[0]
-    }));
-  };
+  const handleImageUpload = async (newImages: CloudinaryImage[]) => {
+  setUploadedImages(prev => [...prev, ...newImages]);
+  const imageIds = newImages.map(img => img.public_id);
+  
+  setFormData(prev => ({
+    ...prev,
+    images: [...prev.images, ...imageIds],
+    cover_image: prev.cover_image || imageIds[0]
+  }));
+
+  // 🆕 Save images to database if gallery already exists
+  if (gallery?.id) {
+    try {
+      const imagesToSave = newImages.map((img, index) => ({
+        gallery_id: gallery.id,
+        image_url: cloudinaryService.getOptimizedUrl(img.public_id, {}),
+        thumbnail_url: cloudinaryService.getOptimizedUrl(img.public_id, { width: 400, height: 400, crop: 'fill' }),
+        order_index: formData.images.length + index
+      }));
+
+      await fetch('/api/admin/client_images', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-admin-token': import.meta.env.VITE_ADMIN_TOKEN || ''
+        },
+        body: JSON.stringify(imagesToSave)
+      });
+    } catch (err) {
+      console.error('Error saving images to database:', err);
+    }
+  }
+};
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
