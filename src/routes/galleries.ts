@@ -23,7 +23,7 @@ router.get('/admin/galleries', async (req, res) => {
 // Create new gallery (admin access)
 router.post('/admin/galleries', async (req, res) => {
   try {
-    const { data, error } = await supabaseAdmin
+    const { data, error } = await supabaseClient
       .from('galleries')
       .insert(req.body)
       .select()
