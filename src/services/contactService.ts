@@ -1,10 +1,11 @@
-import { supabase } from '../lib/supabase';
+// src/services/contactService.ts
+import { supabaseAdmin } from '../lib/supabaseClient';
 import { Contact } from '../types';
 
 export async function submitContact(
   contact: Omit<Contact, 'id' | 'created_at'>
 ): Promise<Contact> {
-  const { data, error } = await supabase
+  const { data, error } = await supabaseAdmin
     .from('contacts')
     .insert(contact)
     .select()
@@ -16,7 +17,7 @@ export async function submitContact(
 
 export async function getAllContacts(): Promise<Contact[]> {
   try {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from('contacts')
       .select('*')
       .order('created_at', { ascending: false });
@@ -30,7 +31,7 @@ export async function getAllContacts(): Promise<Contact[]> {
 }
 
 export async function deleteContact(id: string): Promise<void> {
-  const { error } = await supabase
+  const { error } = await supabaseAdmin
     .from('contacts')
     .delete()
     .eq('id', id);
