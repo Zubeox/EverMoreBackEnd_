@@ -113,7 +113,10 @@ export const ClientGalleryForm: React.FC<ClientGalleryFormProps> = ({
   }
 };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+// THIS IS THE NEW, FIXED handleSubmit FUNCTION.
+// Paste this over the old one.
+
+const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
 
@@ -130,26 +133,56 @@ export const ClientGalleryForm: React.FC<ClientGalleryFormProps> = ({
     try {
       setSaving(true);
 
+      // This is the new line that fixes the date issue
+      const galleryData = {
+        ...formData,
+        wedding_date: formData.wedding_date || null,
+        welcome_message: formData.welcome_message || null,
+        admin_notes: formData.admin_notes || null,
+      };
+
       let savedGallery: ClientGallery;
 
       if (gallery) {
-  savedGallery = await updateClientGallery(gallery.id, formData);
-} else {
-  const { access_code, ...galleryData } = formData;
-  const clientName = generateClientName(formData.bride_name, formData.groom_name);
-  savedGallery = await createClientGallery({
-    ...galleryData,
-    client_name: clientName
-  } as any);
+          savedGallery = await updateClientGallery(gallery.id, galleryData);
+      } else {
+          const { access_code, ...newGalleryData } = galleryData;
+          const clientName = generateClientName(galleryData.bride_name, galleryData.groom_name);
+          savedGallery = await createClientGallery({
+              ...newGalleryData,
+              client_name: clientName
+          } as any);
 
-  // 🆕 Save uploaded images to database
-  if (uploadedImages.length > 0) {
-    const imagesToSave = uploadedImages.map((img, index) => ({
-      gallery_id: savedGallery.id,
-      image_url: cloudinaryService.getOptimizedUrl(img.public_id, {}),
-      thumbnail_url: cloudinaryService.getOptimizedUrl(img.public_id, { width: 400, height: 400, crop: 'fill' }),
-      order_index: index
-    }));
+          if (uploadedImages.length > 0) {
+              const imagesToSave = uploadedImages.map((img, index) => ({
+                  gallery_id: savedGallery.id,
+                  image_url: cloudinaryService.getOptimizedUrl(img.public_id, {}),
+                  thumbnail_url: cloudinaryService.getOptimizedUrl(img.public_id, { width: 400, height: 400, crop: 'fill' }),
+                  order_index: index
+              }));
+
+              // Note: This fetch call assumes a backend API endpoint.
+              // If you have no backend, this part might need to be replaced
+              // with a direct call to a Supabase service like in GalleryDetailsModal.
+              await fetch('/api/admin/client_images', {
+                  method: 'POST',
+                  headers: {
+                      'Content-Type': 'application/json',
+                      'x-admin-token': import.meta.env.VITE_ADMIN_TOKEN || ''
+                  },
+                  body: JSON.stringify(imagesToSave)
+              });
+          }
+      }
+
+      onSave(savedGallery);
+    } catch (err) {
+      console.error('Error saving gallery:', err);
+      setError(err instanceof Error ? err.message : 'Failed to save gallery');
+    } finally {
+      setSaving(false);
+    }
+  };
 
     await fetch('/api/admin/client_images', {
       method: 'POST',
