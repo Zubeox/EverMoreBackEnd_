@@ -80,7 +80,7 @@ export async function createPartner(partner: Omit<Partner, 'id' | 'created_at' |
 }
 
 export async function updatePartner(id: string, updates: Partial<Partner>): Promise<Partner> {
-  const { data, error } = await supabaseClient 
+  const { data, error } = await supabaseClient
     .from('partners')
     .update(updates)
     .eq('id', id)
