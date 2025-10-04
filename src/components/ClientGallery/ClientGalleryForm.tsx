@@ -1,7 +1,6 @@
 // ClientGalleryForm.tsx
 
 import React, { useState, useEffect } from 'react';
-import { supabaseClient } from '../../../lib/supabaseClient';
 import { ClientGallery, CloudinaryImage } from '../../types';
 import {
   createClientGallery,
@@ -11,7 +10,7 @@ import {
   generateAccessCode
 } from '../../services/clientGalleryService';
 import { createImage } from '../../services/clientImageService';
-import { supabaseClient } from '../lib/supabaseClient';
+import { supabaseClient } from '../../../lib/supabaseClient';
 import { DropZone } from '../ImageUpload/DropZone';
 import { CloudinaryService } from '../../services/cloudinaryService';
 import { Save, X, Mail, Copy, CircleCheck as CheckCircle, RefreshCw, Calendar, Image as ImageIcon, CircleAlert as AlertCircle } from 'lucide-react';
