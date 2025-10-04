@@ -103,7 +103,7 @@ export async function deletePartner(id: string): Promise<void> {
 export async function submitPartnershipInquiry(
   inquiry: Omit<PartnershipInquiry, 'id' | 'created_at' | 'status' | 'notes'>
 ): Promise<PartnershipInquiry> {
-  const { data, error } = await supabaseAdmin
+  const { data, error } = await supabaseClient
     .from('partnership_inquiries')
     .insert(inquiry)
     .select()
