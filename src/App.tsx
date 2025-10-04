@@ -1,3 +1,6 @@
+// src/AdminApp.tsx
+// Move all your current App.tsx content here
+
 import { useState, useEffect } from 'react';
 import { supabaseClient as supabase } from './lib/supabaseClient';
 import { LoginScreen } from './components/Auth/LoginScreen';
@@ -24,7 +27,7 @@ import {
   FolderOpen
 } from 'lucide-react';
 
-function App() {
+function AdminApp() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<any>(null);
@@ -195,7 +198,7 @@ function App() {
           </div>
         );
 
-      case 'portfolio-galleries': // updated
+      case 'portfolio-galleries':
         if (showGalleryForm) {
           return (
             <GalleryForm
@@ -214,7 +217,7 @@ function App() {
           />
         );
 
-      case 'client-galleries': // updated
+      case 'client-galleries':
         return <ClientGalleryManagement />;
 
       case 'partners':
@@ -361,4 +364,4 @@ function App() {
   );
 }
 
-export default App;
+export default AdminApp;
