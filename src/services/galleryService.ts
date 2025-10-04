@@ -80,7 +80,7 @@ export async function updateGallery(id: string, updates: Partial<Gallery>): Prom
 }
 
 export async function deleteGallery(id: string): Promise<void> {
-  const { error } = await supabaseAdmin
+  const { error } = await supabaseClient
     .from('galleries')
     .delete()
     .eq('id', id);
