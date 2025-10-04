@@ -1,6 +1,7 @@
 // ClientGalleryForm.tsx
 
 import React, { useState, useEffect } from 'react';
+import { supabaseClient } from '../../../lib/supabaseClient';
 import { ClientGallery, CloudinaryImage } from '../../types';
 import {
   createClientGallery,
