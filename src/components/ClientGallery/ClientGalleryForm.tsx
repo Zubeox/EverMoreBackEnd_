@@ -79,15 +79,16 @@ export const ClientGalleryForm: React.FC<ClientGalleryFormProps> = ({
     setUploadedImages(prev => [...prev, ...newImages]);
     const imageIds = newImages.map(img => img.public_id);
     setFormData(prev => {
-  const combinedImages = [...prev.images, ...imageIds];
-  const uniqueImages = [...new Set(combinedImages)]; // This line removes duplicates
+        const combinedImages = [...prev.images, ...imageIds];
+        const uniqueImages = [...new Set(combinedImages)]; // This line removes duplicates
 
-  return {
-    ...prev,
-    images: uniqueImages,
-    cover_image: prev.cover_image || imageIds[0]
-  };
-});
+        return {
+            ...prev,
+            images: uniqueImages,
+            cover_image: prev.cover_image || imageIds[0]
+        };
+    });
+  }; // <-- This brace was missing, causing the error.
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -105,12 +106,14 @@ export const ClientGalleryForm: React.FC<ClientGalleryFormProps> = ({
 
     setSaving(true);
     try {
+      const allImageIds = [...new Set([...formData.images, ...uploadedImages.map(img => img.public_id)])];
+      
       const galleryDataToSave = {
         ...formData,
         wedding_date: formData.wedding_date || null,
         welcome_message: formData.welcome_message || null,
         admin_notes: formData.admin_notes || null,
-        images: [...formData.images, ...uploadedImages.map(img => img.public_id)]
+        images: allImageIds
       };
 
       let savedGallery: ClientGallery;
@@ -122,7 +125,7 @@ export const ClientGalleryForm: React.FC<ClientGalleryFormProps> = ({
         savedGallery = await createClientGallery({
           ...galleryDataToSave,
           client_name: clientName,
-          access_code: generateAccessCode() // Generate access code on creation
+          access_code: generateAccessCode()
         } as any);
       }
 
@@ -255,9 +258,6 @@ export const ClientGalleryForm: React.FC<ClientGalleryFormProps> = ({
                 {copiedCode ? <CheckCircle className="w-5 h-5" /> : <Copy className="w-5 h-5" />}
               </button>
             </div>
-            <p className="text-xs text-boho-rust mt-1">
-              Access code is auto-generated on save. Clients use this with their email or gallery URL.
-            </p>
           </div>
         )}
 
