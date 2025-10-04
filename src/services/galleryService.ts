@@ -28,7 +28,7 @@ export async function createGallery(gallery: Omit<Gallery, 'id' | 'created_at'>)
   });
 
   try {
-    const { data, error } = await supabaseAdmin
+    const { data, error } = await supabaseClient
       .from('galleries')
       .insert([gallery])
       .select()
