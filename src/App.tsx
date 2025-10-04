@@ -115,87 +115,50 @@ function App() {
   };
 
   const renderContent = () => {
-    switch (activeSection) {
-      case 'dashboard':
+  switch (activeSection) {
+    case 'dashboard':
+      return ( /* dashboard content */ );
+
+    case 'portfolio-galleries': // was 'galleries'
+      if (showGalleryForm) {
         return (
-          <div className="space-y-6">
-            {/* Stats Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              <StatsCard
-                title="Общо изображения"
-                value={images.length}
-                icon={Images}
-                trend={{ value: 12, isPositive: true }}
-                color="blue"
-              />
-              <StatsCard
-                title="Портфолио галерии"
-                value={galleries.length}
-                icon={FolderOpen}
-                trend={{ value: 5, isPositive: true }}
-                color="purple"
-              />
-              <StatsCard
-                title="Използвано място"
-                value="2.4 GB"
-                icon={FolderOpen} /* Changed from Activity */
-                trend={{ value: 8, isPositive: true }}
-                color="green"
-              />
-              <StatsCard
-                title="Месечни прегледи"
-                value="45.2K"
-                icon={FolderOpen} /* Changed from TrendingUp */
-                trend={{ value: 15, isPositive: true }}
-                color="yellow"
-              />
-            </div>
-
-            {/* Recent Activity */}
-            <div className="boho-card rounded-boho">
-              <div className="p-6 border-b border-boho-brown border-opacity-20">
-                <h3 className="text-xl font-semibold text-boho-brown flex items-center space-x-2 boho-heading">
-                  <Clock className="w-5 h-5" />
-                  <span>Последна активност</span>
-                </h3>
-              </div>
-              <div className="p-6">
-                <div className="space-y-4">
-                  {images.slice(0, 5).map((image) => (
-                    <div key={image.public_id} className="flex items-center space-x-4">
-                      <div className="w-12 h-12 bg-boho-warm bg-opacity-30 rounded-boho overflow-hidden border border-boho-brown border-opacity-20">
-                        <img
-                          src={`https://res.cloudinary.com/demo/image/upload/w_48,h_48,c_fill/${image.public_id}`}
-                          alt={image.public_id}
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                      <div className="flex-1">
-                        <p className="text-sm font-medium text-boho-brown font-boho">
-                          Качено ново изображение
-                        </p>
-                        <p className="text-xs text-boho-rust">
-                          {image.public_id} • {new Date(image.created_at).toLocaleDateString()}
-                        </p>
-                      </div>
-                      <FolderOpen className="w-4 h-4 text-boho-warm" /> {/* Changed from Star */}
-                    </div>
-                  ))}
-                  
-                  {images.length === 0 && (
-                    <div className="text-center py-8 text-boho-rust">
-                      <FileText className="w-12 h-12 mx-auto mb-4 text-boho-brown text-opacity-40" />
-                      <p className="font-boho">Няма скорошна активност. Качете някои изображения, за да започнете!</p>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* Supabase Function Tester */}
-            <SupabaseFunctionCaller />
-          </div>
+          <GalleryForm
+            gallery={editingGallery || undefined}
+            onSave={handleSaveGallery}
+            onCancel={handleCancelGalleryForm}
+            availableImages={images}
+          />
         );
+      }
+
+      return (
+        <GalleryList
+          onCreateGallery={handleCreateGallery}
+          onEditGallery={handleEditGallery}
+        />
+      );
+
+    case 'client-galleries': // was 'galleries'
+      return <ClientGalleryManagement />;
+
+    // other cases unchanged
+  }
+};
+
+// App.tsx - getSectionTitle()
+const getSectionTitle = () => {
+  switch (activeSection) {
+    case 'dashboard':
+      return { title: 'Табло', subtitle: 'Преглед на вашата система за управление на съдържанието' };
+    case 'portfolio-galleries':
+      return showGalleryForm
+        ? { title: 'Управление на галерии', subtitle: editingGallery ? 'Редактиране на галерия' : 'Създаване на нова галерия' }
+        : { title: 'Портфолио галерии', subtitle: 'Управлявайте вашите портфолио галерии' };
+    case 'client-galleries':
+      return { title: 'Клиентски Галерии', subtitle: 'Управлявайте вашите сватбени галерии за клиенти' };
+    // other cases unchanged
+  }
+};
 
       case 'galleries':
         if (showGalleryForm) {
