@@ -57,7 +57,7 @@ export async function reorderImages(imageIds: string[]): Promise<void> {
     }));
 
     for (const update of updates) {
-      await supabaseAdmin
+      await supabaseClient
         .from('client_images')
         .update({ order_index: update.order_index })
         .eq('id', update.id);
