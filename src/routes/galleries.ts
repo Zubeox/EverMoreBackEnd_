@@ -63,7 +63,7 @@ router.patch('/admin/galleries/:id', async (req, res) => {
 router.delete('/admin/galleries/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const { error } = await supabaseAdmin
+    const { error } = await supabaseClient
       .from('galleries')
       .delete()
       .eq('id', id);
