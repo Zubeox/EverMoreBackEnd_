@@ -42,7 +42,7 @@ export const SupabaseFunctionCaller: React.FC = () => {
         return;
       }
 
-      const functionUrl = `${supabaseUrl}/functions/v1/client-gallery-auth`;
+      const functionUrl = `${supabaseUrl}/functions/v1/client-galleries`;
       
       // Using direct fetch call with manual headers
       const response = await fetch(functionUrl, {
