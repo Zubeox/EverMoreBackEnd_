@@ -9,7 +9,6 @@ import {
   generateClientName,
   generateAccessCode
 } from '../../services/clientGalleryService';
-import { supabaseClient } from '@lib/supabaseClient';
 import { DropZone } from '../ImageUpload/DropZone';
 import { CloudinaryService } from '../../services/cloudinaryService';
 import { Save, X, Mail, Copy, CircleCheck as CheckCircle, RefreshCw, Calendar, Image as ImageIcon, CircleAlert as AlertCircle } from 'lucide-react';
