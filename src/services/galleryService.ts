@@ -4,7 +4,7 @@ import { Gallery } from '../types';
 
 export async function getGalleries(): Promise<Gallery[]> {
   try {
-    const { data, error } = await supabaseAdmin
+    const { data, error } = await supabaseClient
       .from('galleries')
       .select('*')
       .order('event_date', { ascending: false });
