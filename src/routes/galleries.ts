@@ -41,7 +41,7 @@ router.post('/admin/galleries', async (req, res) => {
 router.patch('/admin/galleries/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const { data, error } = await supabaseAdmin
+    const { data, error } = await supabaseClient
       .from('galleries')
       .update(req.body)
       .eq('id', id)
