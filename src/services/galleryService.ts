@@ -1,9 +1,10 @@
-import { supabase } from '../lib/supabase';
+// src/services/galleryService.ts
+import { supabaseAdmin } from '../lib/supabaseClient';
 import { Gallery } from '../types';
 
 export async function getGalleries(): Promise<Gallery[]> {
   try {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from('galleries')
       .select('*')
       .order('event_date', { ascending: false });
@@ -15,7 +16,6 @@ export async function getGalleries(): Promise<Gallery[]> {
     }));
   } catch (error) {
     console.error('Supabase connection error:', error);
-    // Return empty array instead of throwing to prevent app crash
     return [];
   }
 }
@@ -28,9 +28,9 @@ export async function createGallery(gallery: Omit<Gallery, 'id' | 'created_at'>)
   });
 
   try {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from('galleries')
-      .insert([gallery]) // Ensure data is wrapped in an array
+      .insert([gallery])
       .select()
       .single();
 
@@ -57,7 +57,7 @@ export async function createGallery(gallery: Omit<Gallery, 'id' | 'created_at'>)
 
 export async function updateGallery(id: string, updates: Partial<Gallery>): Promise<Gallery> {
   try {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from('galleries')
       .update(updates)
       .eq('id', id)
@@ -80,7 +80,7 @@ export async function updateGallery(id: string, updates: Partial<Gallery>): Prom
 }
 
 export async function deleteGallery(id: string): Promise<void> {
-  const { error } = await supabase
+  const { error } = await supabaseAdmin
     .from('galleries')
     .delete()
     .eq('id', id);
