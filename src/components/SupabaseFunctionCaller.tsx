@@ -271,7 +271,7 @@ export const SupabaseFunctionCaller: React.FC = () => {
       <div className="bg-boho-sage bg-opacity-10 rounded-boho p-4 border border-boho-sage border-opacity-30">
         <p className="text-sm font-medium text-boho-brown font-boho mb-2">Function URL:</p>
         <code className="text-xs text-boho-brown bg-boho-cream bg-opacity-50 px-2 py-1 rounded border font-mono break-all">
-          {import.meta.env.VITE_SUPABASE_URL}/functions/v1/client-gallery-auth
+          {import.meta.env.VITE_SUPABASE_URL}/functions/v1/client-galleries
         </code>
       </div>
     </div>
