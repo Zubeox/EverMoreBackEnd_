@@ -1,9 +1,10 @@
-import { supabase } from '../lib/supabase';
+// src/services/partnerService.ts
+import { supabaseAdmin } from '../lib/supabaseClient';
 import { Partner, PartnershipInquiry } from '../types';
 
 export async function getAllPartners(): Promise<Partner[]> {
   try {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from('partners')
       .select('*')
       .eq('is_active', true)
@@ -19,7 +20,7 @@ export async function getAllPartners(): Promise<Partner[]> {
 
 export async function getFeaturedPartners(): Promise<Partner[]> {
   try {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from('partners')
       .select('*')
       .eq('is_active', true)
@@ -36,7 +37,7 @@ export async function getFeaturedPartners(): Promise<Partner[]> {
 
 export async function getPartnersByCategory(category: string): Promise<Partner[]> {
   try {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from('partners')
       .select('*')
       .eq('is_active', true)
@@ -53,7 +54,7 @@ export async function getPartnersByCategory(category: string): Promise<Partner[]
 
 export async function getPartner(id: string): Promise<Partner | null> {
   try {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from('partners')
       .select('*')
       .eq('id', id)
@@ -68,7 +69,7 @@ export async function getPartner(id: string): Promise<Partner | null> {
 }
 
 export async function createPartner(partner: Omit<Partner, 'id' | 'created_at' | 'updated_at'>): Promise<Partner> {
-  const { data, error } = await supabase
+  const { data, error } = await supabaseAdmin
     .from('partners')
     .insert(partner)
     .select()
@@ -79,7 +80,7 @@ export async function createPartner(partner: Omit<Partner, 'id' | 'created_at' |
 }
 
 export async function updatePartner(id: string, updates: Partial<Partner>): Promise<Partner> {
-  const { data, error } = await supabase
+  const { data, error } = await supabaseAdmin
     .from('partners')
     .update(updates)
     .eq('id', id)
@@ -91,7 +92,7 @@ export async function updatePartner(id: string, updates: Partial<Partner>): Prom
 }
 
 export async function deletePartner(id: string): Promise<void> {
-  const { error } = await supabase
+  const { error } = await supabaseAdmin
     .from('partners')
     .delete()
     .eq('id', id);
@@ -102,7 +103,7 @@ export async function deletePartner(id: string): Promise<void> {
 export async function submitPartnershipInquiry(
   inquiry: Omit<PartnershipInquiry, 'id' | 'created_at' | 'status' | 'notes'>
 ): Promise<PartnershipInquiry> {
-  const { data, error } = await supabase
+  const { data, error } = await supabaseAdmin
     .from('partnership_inquiries')
     .insert(inquiry)
     .select()
@@ -114,7 +115,7 @@ export async function submitPartnershipInquiry(
 
 export async function getAllInquiries(): Promise<PartnershipInquiry[]> {
   try {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from('partnership_inquiries')
       .select('*')
       .order('created_at', { ascending: false });
@@ -132,7 +133,7 @@ export async function updateInquiryStatus(
   status: 'pending' | 'approved' | 'rejected',
   notes?: string
 ): Promise<PartnershipInquiry> {
-  const { data, error } = await supabase
+  const { data, error } = await supabaseAdmin
     .from('partnership_inquiries')
     .update({ status, notes })
     .eq('id', id)
