@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { supabase } from '../../lib/supabase';
+import { adminLogin } from '../../lib/supabaseClient';
 import { Image, Lock, Mail, AlertCircle } from 'lucide-react';
 
 interface LoginScreenProps {
@@ -18,16 +18,8 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin }) => {
     setLoading(true);
 
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password
-      });
-
-      if (error) throw error;
-
-      if (data.user) {
-        onLogin();
-      }
+      await adminLogin(email, password);
+      onLogin();
     } catch (err: any) {
       setError(err.message || 'Невалидни данни за вход');
     } finally {
@@ -106,7 +98,3 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin }) => {
         <p className="text-center text-sm text-boho-rust mt-6 font-boho">
           Защитена админ зона. Само за оторизирани потребители.
         </p>
-      </div>
-    </div>
-  );
-};
