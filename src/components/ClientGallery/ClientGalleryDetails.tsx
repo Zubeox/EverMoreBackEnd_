@@ -1,3 +1,5 @@
+// ✅ Fixed ClientGalleryDetails.tsx — deduplicated image keys
+
 import React, { useState, useEffect } from 'react';
 import { ClientGallery, ClientGalleryStats } from '../../types';
 import { getGalleryStats, extendExpiration } from '../../services/clientGalleryService';
@@ -219,22 +221,22 @@ export const ClientGalleryDetails: React.FC<ClientGalleryDetailsProps> = ({
             </div>
 
             <div>
-  <label className="block text-sm font-medium text-boho-rust mb-2">Парола</label>
-  <div className="flex space-x-2">
-    <input
-      type="text"
-      value={gallery.access_code || 'Няма код'}
-      readOnly
-      className="flex-1 px-4 py-2 bg-boho-warm bg-opacity-10 border border-boho-brown border-opacity-20 rounded-boho text-sm font-mono text-boho-brown"
-    />
-    <button
-      onClick={() => copyToClipboard(gallery.access_code || '', 'password')}
-      className="px-4 py-2 bg-boho-sage bg-opacity-20 text-boho-brown rounded-boho hover:bg-opacity-30 transition-all"
-    >
-      {copied === 'password' ? <CheckCircle className="w-5 h-5" /> : <Copy className="w-5 h-5" />}
-    </button>
-  </div>
-</div>
+              <label className="block text-sm font-medium text-boho-rust mb-2">Парола</label>
+              <div className="flex space-x-2">
+                <input
+                  type="text"
+                  value={gallery.access_code || 'Няма код'}
+                  readOnly
+                  className="flex-1 px-4 py-2 bg-boho-warm bg-opacity-10 border border-boho-brown border-opacity-20 rounded-boho text-sm font-mono text-boho-brown"
+                />
+                <button
+                  onClick={() => copyToClipboard(gallery.access_code || '', 'password')}
+                  className="px-4 py-2 bg-boho-sage bg-opacity-20 text-boho-brown rounded-boho hover:bg-opacity-30 transition-all"
+                >
+                  {copied === 'password' ? <CheckCircle className="w-5 h-5" /> : <Copy className="w-5 h-5" />}
+                </button>
+              </div>
+            </div>
 
             <button
               onClick={handleResendEmail}
@@ -274,7 +276,7 @@ export const ClientGalleryDetails: React.FC<ClientGalleryDetailsProps> = ({
 
             <div className="flex justify-between items-center py-2 border-b border-boho-brown border-opacity-10">
               <span className="text-boho-rust">Снимки</span>
-              <span className="text-boho-brown font-medium">{gallery.images.length}</span>
+              <span className="text-boho-brown font-medium">{[...new Set(gallery.images)].length}</span>
             </div>
 
             <div className="flex justify-between items-center py-2 border-b border-boho-brown border-opacity-10">
@@ -361,7 +363,7 @@ export const ClientGalleryDetails: React.FC<ClientGalleryDetailsProps> = ({
           Снимки в Галерията
         </h3>
         <div className="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-4">
-          {gallery.images.map((imageId) => (
+          {[...new Set(gallery.images)].map((imageId) => (
             <div
               key={imageId}
               className="aspect-square rounded-boho overflow-hidden border-2 border-boho-brown border-opacity-20 hover:border-opacity-40 transition-all"
