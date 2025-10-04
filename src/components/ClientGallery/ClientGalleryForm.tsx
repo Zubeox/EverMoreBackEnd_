@@ -13,17 +13,7 @@ import { createImage } from '../../services/clientImageService';
 import { supabaseAdmin } from '../../lib/supabaseClient';
 import { DropZone } from '../ImageUpload/DropZone';
 import { CloudinaryService } from '../../services/cloudinaryService';
-import {
-  Save,
-  X,
-  Mail,
-  Copy,
-  CheckCircle,
-  RefreshCw,
-  Calendar,
-  Image as ImageIcon,
-  AlertCircle
-} from 'lucide-react';
+import { Save, X, Mail, Copy, CircleCheck as CheckCircle, RefreshCw, Calendar, Image as ImageIcon, CircleAlert as AlertCircle } from 'lucide-react';
 
 interface ClientGalleryFormProps {
   gallery?: ClientGallery;
