@@ -3,7 +3,7 @@ import { ClientImage } from '../types';
 
 export async function getGalleryImages(galleryId: string): Promise<ClientImage[]> {
   try {
-    const { data, error } = await supabaseAdmin
+    const { data, error } = await supabaseClient
       .from('client_images')
       .select('*')
       .eq('gallery_id', galleryId)
