@@ -133,23 +133,34 @@ export const ClientGalleryForm: React.FC<ClientGalleryFormProps> = ({
       let savedGallery: ClientGallery;
 
       if (gallery) {
-        savedGallery = await updateClientGallery(gallery.id, formData);
-      } else {
-        const { access_code, ...galleryData } = formData;
-        const clientName = generateClientName(formData.bride_name, formData.groom_name);
-        savedGallery = await createClientGallery({
-          ...galleryData,
-          client_name: clientName
-        } as any);
-      }
+  savedGallery = await updateClientGallery(gallery.id, formData);
+} else {
+  const { access_code, ...galleryData } = formData;
+  const clientName = generateClientName(formData.bride_name, formData.groom_name);
+  savedGallery = await createClientGallery({
+    ...galleryData,
+    client_name: clientName
+  } as any);
 
-      if (sendEmail && !gallery) {
-        const galleryUrl = `${window.location.origin}/client-gallery/${savedGallery.gallery_slug}`;
-        await sendCredentialsEmail({
-          gallery: savedGallery,
-          galleryUrl
-        });
-      }
+  // 🆕 Save uploaded images to database
+  if (uploadedImages.length > 0) {
+    const imagesToSave = uploadedImages.map((img, index) => ({
+      gallery_id: savedGallery.id,
+      image_url: cloudinaryService.getOptimizedUrl(img.public_id, {}),
+      thumbnail_url: cloudinaryService.getOptimizedUrl(img.public_id, { width: 400, height: 400, crop: 'fill' }),
+      order_index: index
+    }));
+
+    await fetch('/api/admin/client_images', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-admin-token': import.meta.env.VITE_ADMIN_TOKEN || ''
+      },
+      body: JSON.stringify(imagesToSave)
+    });
+  }
+}
 
       onSave(savedGallery);
     } catch (err) {
