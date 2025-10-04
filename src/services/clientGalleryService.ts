@@ -61,7 +61,7 @@ export async function getClientGalleryBySlug(slug: string): Promise<ClientGaller
   try {
     // This one stays with direct Supabase call since it's public data
     const { data, error } = await supabaseClient
-      .from('client_galleries')
+      .from('galleries')
       .select('*')
       .eq('gallery_slug', slug)
       .maybeSingle();
