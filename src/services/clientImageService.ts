@@ -29,7 +29,7 @@ export async function createImage(image: Omit<ClientImage, 'id' | 'created_at'>)
 }
 
 export async function updateImage(id: string, updates: Partial<ClientImage>): Promise<ClientImage> {
-  const { data, error } = await supabaseAdmin
+  const { data, error } = await supabaseClient
     .from('client_images')
     .update(updates)
     .eq('id', id)
