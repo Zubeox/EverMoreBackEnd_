@@ -70,7 +70,7 @@ export async function reorderImages(imageIds: string[]): Promise<void> {
 
 export async function getNextOrderIndex(galleryId: string): Promise<number> {
   try {
-    const { data, error } = await supabaseAdmin
+    const { data, error } = await supabaseClient
       .from('client_images')
       .select('order_index')
       .eq('gallery_id', galleryId)
