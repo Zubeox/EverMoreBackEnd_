@@ -306,7 +306,7 @@ function App() {
         return showGalleryForm
           ? { title: 'Управление на галерии', subtitle: editingGallery ? 'Редактиране на галерия' : 'Създаване на нова галерия' }
           : { title: 'Портфолио галерии', subtitle: 'Управлявайте вашите портфолио галерии' };
-      case 'client-galleries':
+      case 'galleries':
         return { title: 'Клиентски Галерии', subtitle: 'Управлявайте вашите сватбени галерии за клиенти' };
       case 'partners':
         return { title: 'Партньори', subtitle: 'Управлявайте вашите партньори и доставци' };
