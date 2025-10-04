@@ -1,4 +1,4 @@
-import { supabaseAdmin } from '../lib/supabaseClient';
+import { supabaseClient } from '../lib/supabaseClient';
 import { ClientImage } from '../types';
 
 export async function getGalleryImages(galleryId: string): Promise<ClientImage[]> {
