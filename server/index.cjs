@@ -1,4 +1,3 @@
-// ✅ Force dotenv to load the correct file from /server
 require('dotenv').config({ path: __dirname + '/.env' });
 
 const express = require('express');
