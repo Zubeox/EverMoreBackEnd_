@@ -70,9 +70,15 @@ export async function createClientGallery(
   console.log('📝 Gallery data received:', gallery);
   console.log('📝 access_password value:', gallery.access_password);
   
+  // Ensure access_password exists
+  const galleryData = {
+    ...gallery,
+    access_password: gallery.access_password || generateRandomPassword()
+  };
+  
   const { data, error } = await supabaseAdmin
     .from('client_galleries')
-    .insert(gallery as any)
+    .insert(galleryData)
     .select('*')
     .single();
 
