@@ -1,5 +1,5 @@
 // src/services/galleryService.ts
-import { supabaseAdmin } from '../lib/supabaseClient';
+import { supabaseClient } from '../lib/supabaseClient';
 import { Gallery } from '../types';
 
 export async function getGalleries(): Promise<Gallery[]> {
