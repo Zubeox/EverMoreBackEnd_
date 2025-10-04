@@ -32,45 +32,68 @@ export default function GalleryDetailsModal({ gallery, onClose, onUpdate }: Gall
     setStats(data);
   };
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  // THIS IS THE NEW, FIXED CODE. PASTE IT IN.
+const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
 
     setUploading(true);
 
-    try {
-      for (let i = 0; i < files.length; i++) {
-        const file = files[i];
-        const result = await cloudinaryService.uploadImage(file);
+    // Create a list of upload tasks to run in parallel
+    const uploadPromises = Array.from(files).map(async (file, index) => {
+        try {
+            console.log(`[UPLOADING] Starting upload for: ${file.name}`);
+            const result = await cloudinaryService.uploadImage(file);
 
-        if (result.success && result.data) {
-          const imageUrl = result.data.secure_url;
-          const thumbnailUrl = cloudinaryService.getOptimizedUrl(result.data.public_id, {
-            width: 400,
-            height: 400,
-            crop: 'fill',
-            quality: 'auto'
-          });
+            if (!result.success || !result.data) {
+                throw new Error(result.error || 'Cloudinary upload failed to return data.');
+            }
 
-          await createImage({
-            gallery_id: gallery.id,
-            image_url: imageUrl,
-            thumbnail_url: thumbnailUrl,
-            title: file.name,
-            order_index: images.length + i
-          });
+            console.log(`[SUCCESS] Cloudinary upload finished for: ${file.name}`);
+
+            const imageUrl = result.data.secure_url;
+            const thumbnailUrl = cloudinaryService.getOptimizedUrl(result.data.public_id, {
+                width: 400,
+                height: 400,
+                crop: 'fill',
+                quality: 'auto'
+            });
+
+            const newImageRecord = {
+                gallery_id: gallery.id,
+                image_url: imageUrl,
+                thumbnail_url: thumbnailUrl,
+                title: file.name,
+                order_index: images.length + index
+            };
+            
+            console.log(`[SAVING] Attempting to save record to Supabase for: ${file.name}`);
+            await createImage(newImageRecord);
+            console.log(`[SUCCESS] Supabase record saved for: ${file.name}`);
+
+            return true; // Indicate success
+        } catch (error) {
+            // This will now log the detailed Supabase error to your browser console
+            console.error(`[FAILURE] Failed to process file ${file.name}:`, error);
+            return false; // Indicate failure
         }
-      }
+    });
 
-      await loadImages();
-      onUpdate();
+    try {
+        // Wait for all uploads and database saves to complete
+        await Promise.all(uploadPromises);
+
+        console.log("[COMPLETE] All uploads finished. Reloading gallery images.");
+        await loadImages(); // Refresh the image list from the database
+        onUpdate();       // Notify the parent component that an update occurred
     } catch (error) {
-      console.error('Error uploading images:', error);
-      alert('Failed to upload images');
+        // This catch is for errors in Promise.all itself, though less likely.
+        console.error("An unexpected error occurred during the bulk upload process:", error);
+        alert('Some images failed to upload. Check the console for details.');
     } finally {
-      setUploading(false);
+        setUploading(false);
     }
-  };
+};
 
   const handleDeleteImage = async (id: string) => {
     if (confirm('Delete this image?')) {
