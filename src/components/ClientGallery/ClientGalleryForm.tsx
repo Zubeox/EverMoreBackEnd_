@@ -92,31 +92,61 @@ export const ClientGalleryForm: React.FC<ClientGalleryFormProps> = ({
     });
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  setError(null);
 
-    if (!formData.client_email || !formData.bride_name || !formData.groom_name) {
-      setError('Моля попълнете всички задължителни полета');
-      return;
+  if (!formData.client_email || !formData.bride_name || !formData.groom_name) {
+    setError('Моля попълнете всички задължителни полета');
+    return;
+  }
+
+  if (formData.images.length === 0 && uploadedImages.length === 0) {
+    setError('Моля качете поне една снимка');
+    return;
+  }
+
+  setSaving(true);
+  try {
+    const allImageIds = [...new Set([...formData.images, ...uploadedImages.map(img => img.public_id)])];
+
+    const galleryDataToSave = {
+      ...formData,
+      wedding_date: formData.wedding_date || null,
+      welcome_message: formData.welcome_message || null,
+      admin_notes: formData.admin_notes || null,
+      images: allImageIds,
+      uploadedImages: uploadedImages  // ✅ Pass uploaded images to edge function
+    };
+
+    let savedGallery: ClientGallery;
+
+    if (gallery?.id) {
+      savedGallery = await updateClientGallery(gallery.id, galleryDataToSave);
+    } else {
+      const clientName = generateClientName(galleryDataToSave.bride_name, galleryDataToSave.groom_name);
+      savedGallery = await createClientGallery({
+        ...galleryDataToSave,
+        client_name: clientName,
+        access_code: generateAccessCode()
+      } as any);
     }
 
-    if (formData.images.length === 0 && uploadedImages.length === 0) {
-      setError('Моля качете поне една снимка');
-      return;
-    }
+    // ✅ Image insertion now happens in the edge function!
+    console.log(`✅ Gallery saved with ${uploadedImages.length} images`);
 
-    setSaving(true);
-    try {
-      const allImageIds = [...new Set([...formData.images, ...uploadedImages.map(img => img.public_id)])];
+    setUploadedImages([]);
+    onSave(savedGallery);
 
-      const galleryDataToSave = {
-        ...formData,
-        wedding_date: formData.wedding_date || null,
-        welcome_message: formData.welcome_message || null,
-        admin_notes: formData.admin_notes || null,
-        images: allImageIds
-      };
+  } catch (err) {
+    console.error('Error saving gallery:', err);
+    const errorMessage = err instanceof Error ? err.message : 'Failed to save gallery.';
+    setError(errorMessage);
+  } finally {
+    setSaving(false);
+  }
+};
+
 
       let savedGallery: ClientGallery;
 
