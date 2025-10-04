@@ -1,4 +1,7 @@
-import { supabase } from '../lib/supabase';
+// src/services/clientGalleryService.ts
+// Handles admin and client gallery CRUD, analytics, and authentication flows.
+
+import { supabaseAdmin } from '../lib/supabaseClient'; // ✅ corrected import
 import {
   ClientGallery,
   ClientGalleryAnalytics,
@@ -7,9 +10,13 @@ import {
   ClientGalleryStats
 } from '../types';
 
+// ============================
+// CRUD OPERATIONS
+// ============================
+
 export async function getClientGalleries(): Promise<ClientGallery[]> {
   try {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from('client_galleries')
       .select('*')
       .order('created_at', { ascending: false });
@@ -27,7 +34,7 @@ export async function getClientGalleries(): Promise<ClientGallery[]> {
 
 export async function getClientGalleryById(id: string): Promise<ClientGallery | null> {
   try {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from('client_galleries')
       .select('*')
       .eq('id', id)
@@ -43,7 +50,7 @@ export async function getClientGalleryById(id: string): Promise<ClientGallery | 
 
 export async function getClientGalleryBySlug(slug: string): Promise<ClientGallery | null> {
   try {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from('client_galleries')
       .select('*')
       .eq('gallery_slug', slug)
@@ -60,9 +67,9 @@ export async function getClientGalleryBySlug(slug: string): Promise<ClientGaller
 export async function createClientGallery(
   gallery: Omit<ClientGallery, 'id' | 'created_at' | 'updated_at' | 'access_code'>
 ): Promise<ClientGallery> {
-  const { data, error } = await supabase
+  const { data, error } = await supabaseAdmin
     .from('client_galleries')
-    .insert(gallery as any) // Use 'as any' to bypass strict type check for insert
+    .insert(gallery as any)
     .select('*')
     .single();
 
@@ -74,7 +81,7 @@ export async function updateClientGallery(
   id: string,
   updates: Partial<ClientGallery>
 ): Promise<ClientGallery> {
-  const { data, error } = await supabase
+  const { data, error } = await supabaseAdmin
     .from('client_galleries')
     .update(updates)
     .eq('id', id)
@@ -86,13 +93,17 @@ export async function updateClientGallery(
 }
 
 export async function deleteClientGallery(id: string): Promise<void> {
-  const { error } = await supabase
+  const { error } = await supabaseAdmin
     .from('client_galleries')
     .delete()
     .eq('id', id);
 
   if (error) throw error;
 }
+
+// ============================
+// UTILITY GENERATORS
+// ============================
 
 export async function generateUniqueSlug(brideName: string, groomName: string): Promise<string> {
   const baseSlug = `${brideName}-${groomName}`
@@ -135,6 +146,10 @@ export function generateClientName(brideName: string, groomName: string): string
   return `${brideName} & ${groomName}`;
 }
 
+// ============================
+// CLIENT AUTHENTICATION
+// ============================
+
 export async function authenticateClient({
   email,
   slug,
@@ -145,7 +160,7 @@ export async function authenticateClient({
   code: string;
 }): Promise<{ success: boolean; gallery?: ClientGallery; error?: string }> {
   try {
-    let query = supabase
+    let query = supabaseAdmin
       .from('client_galleries')
       .select('*')
       .eq('status', 'active')
@@ -167,7 +182,6 @@ export async function authenticateClient({
     }
 
     await incrementGalleryViews(gallery.id);
-
     return { success: true, gallery };
   } catch (err: any) {
     console.error('Error authenticating client:', err);
@@ -177,16 +191,16 @@ export async function authenticateClient({
 
 async function incrementGalleryViews(galleryId: string): Promise<void> {
   try {
-    const { data: currentGallery, error: fetchError } = await supabase
+    const { data: currentGallery, error: fetchError } = await supabaseAdmin
       .from('client_galleries')
       .select('view_count')
       .eq('id', galleryId)
       .single();
 
     if (fetchError) throw fetchError;
-      
+
     if (currentGallery) {
-      await supabase
+      await supabaseAdmin
         .from('client_galleries')
         .update({
           view_count: (currentGallery.view_count || 0) + 1,
@@ -199,25 +213,26 @@ async function incrementGalleryViews(galleryId: string): Promise<void> {
   }
 }
 
+// ============================
+// ANALYTICS / STATS
+// ============================
+
 export async function getGalleryStats(galleryId: string): Promise<ClientGalleryStats> {
   try {
     const gallery = await getClientGalleryById(galleryId);
+    if (!gallery) throw new Error("Gallery not found");
 
-    if (!gallery) {
-      throw new Error("Gallery not found");
-    }
-
-    const { count: uniqueVisitors } = await supabase
+    const { count: uniqueVisitors } = await supabaseAdmin
       .from('client_gallery_analytics')
       .select('client_email', { count: 'exact', head: true })
       .eq('gallery_id', galleryId);
 
-    const { count: totalDownloads } = await supabase
+    const { count: totalDownloads } = await supabaseAdmin
       .from('client_gallery_downloads')
       .select('*', { count: 'exact', head: true })
       .eq('gallery_id', galleryId);
 
-    const { count: totalFavorites } = await supabase
+    const { count: totalFavorites } = await supabaseAdmin
       .from('client_gallery_favorites')
       .select('*', { count: 'exact', head: true })
       .eq('gallery_id', galleryId);
@@ -245,6 +260,10 @@ export async function getGalleryStats(galleryId: string): Promise<ClientGalleryS
     };
   }
 }
+
+// ============================
+// EXTEND EXPIRATION
+// ============================
 
 export async function extendExpiration(galleryId: string, days: number): Promise<ClientGallery> {
   const gallery = await getClientGalleryById(galleryId);
