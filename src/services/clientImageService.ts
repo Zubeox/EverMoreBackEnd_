@@ -1,9 +1,9 @@
-import { supabase } from '../lib/supabase';
+import { supabaseAdmin } from '../lib/supabaseClient';
 import { ClientImage } from '../types';
 
 export async function getGalleryImages(galleryId: string): Promise<ClientImage[]> {
   try {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from('client_images')
       .select('*')
       .eq('gallery_id', galleryId)
@@ -18,7 +18,7 @@ export async function getGalleryImages(galleryId: string): Promise<ClientImage[]
 }
 
 export async function createImage(image: Omit<ClientImage, 'id' | 'created_at'>): Promise<ClientImage> {
-  const { data, error } = await supabase
+  const { data, error } = await supabaseAdmin
     .from('client_images')
     .insert(image)
     .select()
@@ -29,7 +29,7 @@ export async function createImage(image: Omit<ClientImage, 'id' | 'created_at'>)
 }
 
 export async function updateImage(id: string, updates: Partial<ClientImage>): Promise<ClientImage> {
-  const { data, error } = await supabase
+  const { data, error } = await supabaseAdmin
     .from('client_images')
     .update(updates)
     .eq('id', id)
@@ -41,7 +41,7 @@ export async function updateImage(id: string, updates: Partial<ClientImage>): Pr
 }
 
 export async function deleteImage(id: string): Promise<void> {
-  const { error } = await supabase
+  const { error } = await supabaseAdmin
     .from('client_images')
     .delete()
     .eq('id', id);
@@ -57,7 +57,7 @@ export async function reorderImages(imageIds: string[]): Promise<void> {
     }));
 
     for (const update of updates) {
-      await supabase
+      await supabaseAdmin
         .from('client_images')
         .update({ order_index: update.order_index })
         .eq('id', update.id);
@@ -70,7 +70,7 @@ export async function reorderImages(imageIds: string[]): Promise<void> {
 
 export async function getNextOrderIndex(galleryId: string): Promise<number> {
   try {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from('client_images')
       .select('order_index')
       .eq('gallery_id', galleryId)
