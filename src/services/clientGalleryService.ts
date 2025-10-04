@@ -6,7 +6,7 @@ import {
 } from '../types';
 
 // Get the Edge Function URL
-const EDGE_FUNCTION_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/client-galleries`;
+const EDGE_FUNCTION_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/galleries`;
 
 // Helper to make authenticated requests to Edge Function
 async function callEdgeFunction(path: string = '', options: RequestInit = {}) {
