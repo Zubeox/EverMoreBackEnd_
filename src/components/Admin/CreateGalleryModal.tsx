@@ -19,7 +19,7 @@ export default function CreateGalleryModal({ onClose, onSuccess }: CreateGallery
     groomName: '',
     clientEmail: '',
     weddingDate: '',
-    password: generateRandomPassword(),
+    access_password: generateRandomPassword(),
     welcomeMessage: '',
     expiresInDays: 90,
     allowDownloads: true
