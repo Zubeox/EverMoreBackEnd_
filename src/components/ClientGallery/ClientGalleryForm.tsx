@@ -4,7 +4,8 @@ import {
   createClientGallery,
   updateClientGallery,
   generateUniqueSlug,
-  generateClientName
+  generateClientName,
+  generateAccessCode
 } from '../../services/clientGalleryService';
 import { DropZone } from '../ImageUpload/DropZone';
 import { CloudinaryService } from '../../services/cloudinaryService';
