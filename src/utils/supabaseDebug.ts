@@ -1,12 +1,12 @@
-import { supabase } from '../lib/supabase';
+// src/utils/supabaseDebug.ts
+import { supabaseAdmin } from '../lib/supabaseClient';
 
 export async function debugSupabaseConnection() {
     console.log('=== SUPABASE DEBUG INFO ===');
     
     try {
-        // 1. Test SELECT
         console.log('Testing SELECT...');
-        const { data: selectData, error: selectError } = await supabase
+        const { data: selectData, error: selectError } = await supabaseAdmin
             .from('galleries')
             .select('*')
             .limit(1);
@@ -16,7 +16,6 @@ export async function debugSupabaseConnection() {
             error: selectError
         });
         
-        // 2. Test INSERT
         console.log('Testing INSERT...');
         const testData = {
             title: 'Debug Test Gallery',
@@ -24,7 +23,7 @@ export async function debugSupabaseConnection() {
             event_date: new Date().toISOString().split('T')[0]
         };
         
-        const { data: insertData, error: insertError } = await supabase
+        const { data: insertData, error: insertError } = await supabaseAdmin
             .from('galleries')
             .insert([testData])
             .select()
@@ -36,10 +35,9 @@ export async function debugSupabaseConnection() {
             error: insertError
         });
         
-        // 3. Clean up test data if insert succeeded
         if (insertData?.id) {
             console.log('Cleaning up test data...');
-            const { error: deleteError } = await supabase
+            const { error: deleteError } = await supabaseAdmin
                 .from('galleries')
                 .delete()
                 .eq('id', insertData.id);
