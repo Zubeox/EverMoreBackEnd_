@@ -115,7 +115,7 @@ export async function submitPartnershipInquiry(
 
 export async function getAllInquiries(): Promise<PartnershipInquiry[]> {
   try {
-    const { data, error } = await supabaseAdmin
+    const { data, error } = await supabaseClient
       .from('partnership_inquiries')
       .select('*')
       .order('created_at', { ascending: false });
