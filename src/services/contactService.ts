@@ -31,7 +31,7 @@ export async function getAllContacts(): Promise<Contact[]> {
 }
 
 export async function deleteContact(id: string): Promise<void> {
-  const { error } = await supabaseAdmin
+  const { error } = await supabaseClient
     .from('contacts')
     .delete()
     .eq('id', id);
