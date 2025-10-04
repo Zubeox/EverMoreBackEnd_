@@ -219,22 +219,22 @@ export const ClientGalleryDetails: React.FC<ClientGalleryDetailsProps> = ({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-boho-rust mb-2">Парола</label>
-              <div className="flex space-x-2">
-                <input
-                  type="text"
-                  value={gallery.access_password}
-                  readOnly
-                  className="flex-1 px-4 py-2 bg-boho-warm bg-opacity-10 border border-boho-brown border-opacity-20 rounded-boho text-sm font-mono"
-                />
-                <button
-                  onClick={() => copyToClipboard(gallery.access_password, 'password')}
-                  className="px-4 py-2 bg-boho-sage bg-opacity-20 text-boho-brown rounded-boho hover:bg-opacity-30 transition-all"
-                >
-                  {copied === 'password' ? <CheckCircle className="w-5 h-5" /> : <Copy className="w-5 h-5" />}
-                </button>
-              </div>
-            </div>
+  <label className="block text-sm font-medium text-boho-rust mb-2">Парола</label>
+  <div className="flex space-x-2">
+    <input
+      type="text"
+      value={gallery.access_code || 'Няма код'}
+      readOnly
+      className="flex-1 px-4 py-2 bg-boho-warm bg-opacity-10 border border-boho-brown border-opacity-20 rounded-boho text-sm font-mono text-boho-brown"
+    />
+    <button
+      onClick={() => copyToClipboard(gallery.access_code || '', 'password')}
+      className="px-4 py-2 bg-boho-sage bg-opacity-20 text-boho-brown rounded-boho hover:bg-opacity-30 transition-all"
+    >
+      {copied === 'password' ? <CheckCircle className="w-5 h-5" /> : <Copy className="w-5 h-5" />}
+    </button>
+  </div>
+</div>
 
             <button
               onClick={handleResendEmail}
