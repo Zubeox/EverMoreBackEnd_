@@ -15,7 +15,6 @@ router.post('/', async (req, res) => {
       images_viewed
     } = req.body;
 
-    // Validate required fields
     if (!gallery_id || !client_email) {
       return res.status(400).json({ error: 'Missing required fields' });
     }
@@ -28,15 +27,15 @@ router.post('/', async (req, res) => {
         session_start,
         user_agent,
         images_viewed: images_viewed || 0,
-        ip_address: req.ip
+        ip_address: req.headers['x-forwarded-for'] || req.ip
       })
       .select()
       .single();
 
     if (error) throw error;
-    res.json(data);
+    res.status(201).json(data);
   } catch (error) {
-    console.error('Error creating analytics session:', error);
+    console.error('[POST] /api/client/analytics →', error);
     res.status(500).json({ error: 'Failed to create analytics session' });
   }
 });
@@ -59,12 +58,12 @@ router.patch('/:sessionId', async (req, res) => {
     if (error) throw error;
     res.json({ success: true });
   } catch (error) {
-    console.error('Error updating analytics session:', error);
+    console.error('[PATCH] /api/client/analytics/:id →', error);
     res.status(500).json({ error: 'Failed to update analytics session' });
   }
 });
 
-// Get analytics for a gallery
+// Get analytics for a specific gallery
 router.get('/gallery/:galleryId', async (req, res) => {
   try {
     const { galleryId } = req.params;
@@ -78,7 +77,7 @@ router.get('/gallery/:galleryId', async (req, res) => {
     if (error) throw error;
     res.json(data);
   } catch (error) {
-    console.error('Error fetching gallery analytics:', error);
+    console.error('[GET] /api/client/analytics/gallery/:galleryId →', error);
     res.status(500).json({ error: 'Failed to fetch analytics' });
   }
 });
