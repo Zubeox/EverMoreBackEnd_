@@ -17,7 +17,7 @@ export async function submitContact(
 
 export async function getAllContacts(): Promise<Contact[]> {
   try {
-    const { data, error } = await supabaseAdmin
+    const { data, error } = await supabaseClient
       .from('contacts')
       .select('*')
       .order('created_at', { ascending: false });
