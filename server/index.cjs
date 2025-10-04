@@ -228,11 +228,35 @@ app.post('/api/client/downloads', async (req, res) => {
 app.post('/api/client/analytics', async (req, res) => {
   try {
     const payload = req.body || {};
-    if (!payload.gallery_id || !payload.client_email) return res.status(400).json({ error: 'Missing fields' });
-    const { data, error } = await supabase.from('client_gallery_analytics').insert(payload).select().single();
-    if (error) return res.status(500).json({ error });
+    if (!payload.gallery_id || !payload.client_email) {
+      return res.status(400).json({ error: 'Missing fields' });
+    }
+
+    // Whitelist only the columns that exist in your Supabase table
+    const row = {
+      gallery_id: payload.gallery_id,
+      client_email: payload.client_email,
+      session_start: payload.session_start || new Date().toISOString(),
+      user_agent: payload.user_agent || null,
+      images_viewed: typeof payload.images_viewed === 'number' ? payload.images_viewed : 0,
+    };
+
+    const { data, error } = await supabase
+      .from('client_gallery_analytics')
+      .insert(row)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Analytics insert error:', error);
+      return res.status(500).json({ error: error.message });
+    }
+    
     res.status(201).json(data);
-  } catch (err) { res.status(500).json({ error: String(err) }); }
+  } catch (err) {
+    console.error('Analytics error:', err);
+    res.status(500).json({ error: String(err) });
+  }
 });
 
 app.patch('/api/client/analytics/:id', async (req, res) => {
