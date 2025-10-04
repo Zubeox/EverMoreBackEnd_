@@ -8,11 +8,10 @@ import { ImageGrid } from './components/ImageGallery/ImageGrid';
 import { StatsCard } from './components/Dashboard/StatsCard';
 import { GalleryList } from './components/Galleries/GalleryList';
 import { GalleryForm } from './components/Galleries/GalleryForm';
-import GalleryManagement from './components/Admin/GalleryManagement';
+import ClientGalleryManagement from './components/Admin/ClientGalleryManagement';
 import PartnerManagement from './components/Admin/PartnerManagement';
 import InquiryManagement from './components/Admin/InquiryManagement';
 import ContactManagement from './components/Admin/ContactManagement';
-import ClientGalleryManagement from './components/Admin/ClientGalleryManagement';
 import { SupabaseFunctionCaller } from './components/SupabaseFunctionCaller';
 import { CloudinaryImage, Gallery } from './types';
 import { getGalleries } from './services/galleryService';
@@ -195,7 +194,7 @@ function App() {
           </div>
         );
 
-      case 'portfolio-galleries': // updated
+      case 'portfolio-galleries': // This was named 'galleries' in your original file
         if (showGalleryForm) {
           return (
             <GalleryForm
@@ -214,7 +213,7 @@ function App() {
           />
         );
 
-      case 'client-galleries': // updated
+      case 'client-galleries':
         return <ClientGalleryManagement />;
 
       case 'partners':
@@ -295,7 +294,7 @@ function App() {
         );
     }
   };
-
+  
   const getSectionTitle = () => {
     switch (activeSection) {
       case 'dashboard':
