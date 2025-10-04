@@ -133,7 +133,7 @@ export async function updateInquiryStatus(
   status: 'pending' | 'approved' | 'rejected',
   notes?: string
 ): Promise<PartnershipInquiry> {
-  const { data, error } = await supabaseAdmin
+  const { data, error } = await supabaseClient
     .from('partnership_inquiries')
     .update({ status, notes })
     .eq('id', id)
