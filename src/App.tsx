@@ -13,6 +13,7 @@ import PartnerManagement from './components/Admin/PartnerManagement';
 import InquiryManagement from './components/Admin/InquiryManagement';
 import ContactManagement from './components/Admin/ContactManagement';
 import ClientGalleryManagement from './components/Admin/ClientGalleryManagement';
+import { SupabaseFunctionCaller } from './components/SupabaseFunctionCaller';
 import { CloudinaryImage, Gallery } from './types';
 import { getGalleries } from './services/galleryService';
 import {
@@ -190,6 +191,9 @@ function App() {
                 </div>
               </div>
             </div>
+
+            {/* Supabase Function Tester */}
+            <SupabaseFunctionCaller />
           </div>
         );
 
