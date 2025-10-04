@@ -67,22 +67,31 @@ export async function getClientGalleryBySlug(slug: string): Promise<ClientGaller
 export async function createClientGallery(
   gallery: Omit<ClientGallery, 'id' | 'created_at' | 'updated_at' | 'access_code'>
 ): Promise<ClientGallery> {
-  console.log('📝 Gallery data received:', gallery);
-  console.log('📝 access_password value:', gallery.access_password);
-  
-  // Ensure access_password exists
+  // Ensure all required fields are present with fallbacks
   const galleryData = {
     ...gallery,
-    access_password: gallery.access_password || generateRandomPassword()
+    access_password: gallery.access_password || generateRandomPassword(),
+    client_name: gallery.client_name || generateClientName(gallery.bride_name, gallery.groom_name),
+    status: gallery.status || 'active',
+    images: gallery.images || [],
+    view_count: gallery.view_count || 0,
+    allow_downloads: gallery.allow_downloads !== undefined ? gallery.allow_downloads : true
   };
-  
+
+  console.log('📝 Gallery data being inserted:', galleryData);
+
   const { data, error } = await supabaseAdmin
     .from('client_galleries')
     .insert(galleryData)
     .select('*')
     .single();
 
-  if (error) throw error;
+  if (error) {
+    console.error('❌ Database error:', error);
+    throw error;
+  }
+  
+  console.log('✅ Gallery created successfully:', data);
   return data;
 }
 
