@@ -18,7 +18,7 @@ export async function getGalleryImages(galleryId: string): Promise<ClientImage[]
 }
 
 export async function createImage(image: Omit<ClientImage, 'id' | 'created_at'>): Promise<ClientImage> {
-  const { data, error } = await supabaseAdmin
+  const { data, error } = await supabaseClient
     .from('client_images')
     .insert(image)
     .select()
