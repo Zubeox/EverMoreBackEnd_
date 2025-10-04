@@ -57,7 +57,7 @@ export async function createGallery(gallery: Omit<Gallery, 'id' | 'created_at'>)
 
 export async function updateGallery(id: string, updates: Partial<Gallery>): Promise<Gallery> {
   try {
-    const { data, error } = await supabaseAdmin
+    const { data, error } = await supabaseClient
       .from('galleries')
       .update(updates)
       .eq('id', id)
