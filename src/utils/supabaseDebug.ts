@@ -23,7 +23,7 @@ export async function debugSupabaseConnection() {
             event_date: new Date().toISOString().split('T')[0]
         };
         
-        const { data: insertData, error: insertError } = await supabaseAdmin
+        const { data: insertData, error: insertError } = await supabaseClient
             .from('galleries')
             .insert([testData])
             .select()
