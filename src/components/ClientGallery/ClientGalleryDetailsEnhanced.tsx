@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { cloudinaryService } from '../../utils/cloudinaryService';
 import { ClientGallery, ClientGalleryStats } from '../../types';
 import { getGalleryStats, extendExpiration, updateClientGallery } from '../../services/clientGalleryService';
 import { sendCredentialsEmail } from '../../services/emailService';
