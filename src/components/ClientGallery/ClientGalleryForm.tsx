@@ -78,12 +78,16 @@ export const ClientGalleryForm: React.FC<ClientGalleryFormProps> = ({
   const handleImageUpload = (newImages: CloudinaryImage[]) => {
     setUploadedImages(prev => [...prev, ...newImages]);
     const imageIds = newImages.map(img => img.public_id);
-    setFormData(prev => ({
-      ...prev,
-      images: [...prev.images, ...imageIds],
-      cover_image: prev.cover_image || imageIds[0]
-    }));
+    setFormData(prev => {
+  const combinedImages = [...prev.images, ...imageIds];
+  const uniqueImages = [...new Set(combinedImages)]; // This line removes duplicates
+
+  return {
+    ...prev,
+    images: uniqueImages,
+    cover_image: prev.cover_image || imageIds[0]
   };
+});
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
