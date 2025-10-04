@@ -216,7 +216,7 @@ function App() {
           />
         );
 
-      case 'client-galleries':
+      case 'galleries':
         return <ClientGalleryManagement />;
 
       case 'partners':
