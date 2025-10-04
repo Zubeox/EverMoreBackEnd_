@@ -92,7 +92,7 @@ export async function updatePartner(id: string, updates: Partial<Partner>): Prom
 }
 
 export async function deletePartner(id: string): Promise<void> {
-  const { error } = await supabaseAdmin
+  const { error } = await supabaseClient
     .from('partners')
     .delete()
     .eq('id', id);
