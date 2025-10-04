@@ -1,5 +1,5 @@
 // src/services/contactService.ts
-import { supabaseAdmin } from '../lib/supabaseClient';
+import { supabaseClient } from '../lib/supabaseClient';
 import { Contact } from '../types';
 
 export async function submitContact(
