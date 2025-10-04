@@ -69,7 +69,7 @@ export async function getPartner(id: string): Promise<Partner | null> {
 }
 
 export async function createPartner(partner: Omit<Partner, 'id' | 'created_at' | 'updated_at'>): Promise<Partner> {
-  const { data, error } = await supabaseAdmin
+  const { data, error } = await supabaseClient
     .from('partners')
     .insert(partner)
     .select()
