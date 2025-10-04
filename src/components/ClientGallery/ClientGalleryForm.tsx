@@ -9,7 +9,6 @@ import {
   generateClientName,
   generateAccessCode
 } from '../../services/clientGalleryService';
-import { createImage } from '../../services/clientImageService';
 import { supabaseClient } from '@lib/supabaseClient';
 import { DropZone } from '../ImageUpload/DropZone';
 import { CloudinaryService } from '../../services/cloudinaryService';
@@ -92,61 +91,32 @@ export const ClientGalleryForm: React.FC<ClientGalleryFormProps> = ({
     });
   };
 
-const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
-  setError(null);
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
 
-  if (!formData.client_email || !formData.bride_name || !formData.groom_name) {
-    setError('Моля попълнете всички задължителни полета');
-    return;
-  }
-
-  if (formData.images.length === 0 && uploadedImages.length === 0) {
-    setError('Моля качете поне една снимка');
-    return;
-  }
-
-  setSaving(true);
-  try {
-    const allImageIds = [...new Set([...formData.images, ...uploadedImages.map(img => img.public_id)])];
-
-    const galleryDataToSave = {
-      ...formData,
-      wedding_date: formData.wedding_date || null,
-      welcome_message: formData.welcome_message || null,
-      admin_notes: formData.admin_notes || null,
-      images: allImageIds,
-      uploadedImages: uploadedImages  // ✅ Pass uploaded images to edge function
-    };
-
-    let savedGallery: ClientGallery;
-
-    if (gallery?.id) {
-      savedGallery = await updateClientGallery(gallery.id, galleryDataToSave);
-    } else {
-      const clientName = generateClientName(galleryDataToSave.bride_name, galleryDataToSave.groom_name);
-      savedGallery = await createClientGallery({
-        ...galleryDataToSave,
-        client_name: clientName,
-        access_code: generateAccessCode()
-      } as any);
+    if (!formData.client_email || !formData.bride_name || !formData.groom_name) {
+      setError('Моля попълнете всички задължителни полета');
+      return;
     }
 
-    // ✅ Image insertion now happens in the edge function!
-    console.log(`✅ Gallery saved with ${uploadedImages.length} images`);
+    if (formData.images.length === 0 && uploadedImages.length === 0) {
+      setError('Моля качете поне една снимка');
+      return;
+    }
 
-    setUploadedImages([]);
-    onSave(savedGallery);
+    setSaving(true);
+    try {
+      const allImageIds = [...new Set([...formData.images, ...uploadedImages.map(img => img.public_id)])];
 
-  } catch (err) {
-    console.error('Error saving gallery:', err);
-    const errorMessage = err instanceof Error ? err.message : 'Failed to save gallery.';
-    setError(errorMessage);
-  } finally {
-    setSaving(false);
-  }
-};
-
+      const galleryDataToSave = {
+        ...formData,
+        wedding_date: formData.wedding_date || null,
+        welcome_message: formData.welcome_message || null,
+        admin_notes: formData.admin_notes || null,
+        images: allImageIds,
+        uploadedImages: uploadedImages
+      };
 
       let savedGallery: ClientGallery;
 
@@ -161,41 +131,14 @@ const handleSubmit = async (e: React.FormEvent) => {
         } as any);
       }
 
-      if (uploadedImages.length > 0 && savedGallery?.id) {
-        try {
-          const { data: existingImages } = await supabaseClient
-            .from('client_images')
-            .select('order_index')
-            .eq('gallery_id', savedGallery.id)
-            .order('order_index', { ascending: false })
-            .limit(1);
-
-          const startOrderIndex = (existingImages?.[0]?.order_index ?? -1) + 1;
-
-          for (let i = 0; i < uploadedImages.length; i++) {
-            const cloudinaryImage = uploadedImages[i];
-
-            await createImage({
-              gallery_id: savedGallery.id,
-              image_url: cloudinaryImage.secure_url,
-              thumbnail_url: cloudinaryImage.secure_url,
-              title: null,
-              order_index: startOrderIndex + i
-            });
-          }
-
-          console.log(`✅ Successfully saved ${uploadedImages.length} images to database`);
-        } catch (imageError) {
-          console.error('❌ Error saving images to database:', imageError);
-        }
-      }
+      console.log(`✅ Gallery saved with ${uploadedImages.length} images`);
 
       setUploadedImages([]);
       onSave(savedGallery);
 
     } catch (err) {
       console.error('Error saving gallery:', err);
-      const errorMessage = err instanceof Error ? err.message : 'Failed to save gallery. Please check the console.';
+      const errorMessage = err instanceof Error ? err.message : 'Failed to save gallery.';
       setError(errorMessage);
     } finally {
       setSaving(false);
