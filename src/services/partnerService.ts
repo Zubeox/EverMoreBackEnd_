@@ -54,7 +54,7 @@ export async function getPartnersByCategory(category: string): Promise<Partner[]
 
 export async function getPartner(id: string): Promise<Partner | null> {
   try {
-    const { data, error } = await supabaseAdmin
+    const { data, error } = await supabaseClient
       .from('partners')
       .select('*')
       .eq('id', id)
