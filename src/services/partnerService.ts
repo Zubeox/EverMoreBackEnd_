@@ -4,7 +4,7 @@ import { Partner, PartnershipInquiry } from '../types';
 
 export async function getAllPartners(): Promise<Partner[]> {
   try {
-    const { data, error } = await supabaseAdmin
+    const { data, error } = await supabaseClient
       .from('partners')
       .select('*')
       .eq('is_active', true)
