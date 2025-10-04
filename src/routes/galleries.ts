@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import { supabaseAdmin } from '../lib/supabaseClient';
+import { supabaseClient } from '../lib/supabaseClient';
 import type { Gallery } from '../types';
 
 const router = Router();
