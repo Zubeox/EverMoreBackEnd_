@@ -37,7 +37,7 @@ export async function debugSupabaseConnection() {
         
         if (insertData?.id) {
             console.log('Cleaning up test data...');
-            const { error: deleteError } = await supabaseAdmin
+            const { error: deleteError } = await supabaseClient
                 .from('galleries')
                 .delete()
                 .eq('id', insertData.id);
