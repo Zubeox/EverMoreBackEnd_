@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { supabaseClient } from '../lib/supabaseClient';
-import { Mail, Lock, Send, CheckCircle, XCircle, Loader2, Code, Globe, AlertTriangle } from 'lucide-react';
+import { Mail, Lock, Send, CircleCheck as CheckCircle, Circle as XCircle, Loader as Loader2, Code, Globe, TriangleAlert as AlertTriangle } from 'lucide-react';
 
 export const SupabaseFunctionCaller: React.FC = () => {
   const [email, setEmail] = useState('');
