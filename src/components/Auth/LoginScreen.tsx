@@ -98,3 +98,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin }) => {
         <p className="text-center text-sm text-boho-rust mt-6 font-boho">
           Защитена админ зона. Само за оторизирани потребители.
         </p>
+      </div>
+    </div>
+  );
+};
