@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import { supabase } from '../lib/supabase';
+import { supabaseAdmin } from '../lib/supabaseClient';
 import type { Gallery } from '../types';
 
 const router = Router();
@@ -7,7 +7,7 @@ const router = Router();
 // Get all galleries (admin access)
 router.get('/admin/galleries', async (req, res) => {
   try {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from('galleries')
       .select('*')
       .order('created_at', { ascending: false });
@@ -23,7 +23,7 @@ router.get('/admin/galleries', async (req, res) => {
 // Create new gallery (admin access)
 router.post('/admin/galleries', async (req, res) => {
   try {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from('galleries')
       .insert(req.body)
       .select()
@@ -41,7 +41,7 @@ router.post('/admin/galleries', async (req, res) => {
 router.patch('/admin/galleries/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from('galleries')
       .update(req.body)
       .eq('id', id)
@@ -63,7 +63,7 @@ router.patch('/admin/galleries/:id', async (req, res) => {
 router.delete('/admin/galleries/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const { error } = await supabase
+    const { error } = await supabaseAdmin
       .from('galleries')
       .delete()
       .eq('id', id);
