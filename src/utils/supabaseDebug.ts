@@ -6,7 +6,7 @@ export async function debugSupabaseConnection() {
     
     try {
         console.log('Testing SELECT...');
-        const { data: selectData, error: selectError } = await supabaseAdmin
+        const { data: selectData, error: selectError } = await supabaseClient
             .from('galleries')
             .select('*')
             .limit(1);
