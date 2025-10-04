@@ -1,5 +1,5 @@
 // src/utils/supabaseDebug.ts
-import { supabaseAdmin } from '../lib/supabaseClient';
+import { supabaseClient } from '../lib/supabaseClient';
 
 export async function debugSupabaseConnection() {
     console.log('=== SUPABASE DEBUG INFO ===');
