@@ -7,7 +7,7 @@ const router = Router();
 // Get all galleries (admin access)
 router.get('/admin/galleries', async (req, res) => {
   try {
-    const { data, error } = await supabaseAdmin
+    const { data, error } = await supabaseClient
       .from('galleries')
       .select('*')
       .order('created_at', { ascending: false });
