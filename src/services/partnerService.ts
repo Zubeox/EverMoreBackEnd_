@@ -1,5 +1,5 @@
 // src/services/partnerService.ts
-import { supabaseAdmin } from '../lib/supabaseClient';
+import { supabaseClient } from '../lib/supabaseClient';
 import { Partner, PartnershipInquiry } from '../types';
 
 export async function getAllPartners(): Promise<Partner[]> {
