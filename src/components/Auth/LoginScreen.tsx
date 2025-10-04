@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { adminLogin } from '../../lib/supabaseClient';
+import { supabaseClient } from '../lib/supabaseClient';
 import { Image, Lock, Mail, AlertCircle } from 'lucide-react';
 
 interface LoginScreenProps {
