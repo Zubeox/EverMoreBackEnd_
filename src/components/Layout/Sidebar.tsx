@@ -25,7 +25,7 @@ const menuItems = [
   { id: 'dashboard', icon: LayoutDashboard, label: 'Табло' },
   { id: 'images', icon: Images, label: 'Галерия' },
   { id: 'galleries', icon: FolderOpen, label: 'Портфолио' },
-  { id: 'galleries', icon: UserCheck, label: 'Клиентски Галерии' },
+  { id: 'client-galleries', icon: UserCheck, label: 'Клиентски Галерии' },
   { id: 'partners', icon: Handshake, label: 'Партньори' },
   { id: 'inquiries', icon: MessageSquare, label: 'Запитвания' },
   { id: 'contacts', icon: Mail, label: 'Контакти' },
