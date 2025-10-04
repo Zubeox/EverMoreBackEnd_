@@ -4,19 +4,14 @@ import {
   createClientGallery,
   updateClientGallery,
   generateUniqueSlug,
-  generateRandomPassword,
-  generateAccessCode,
   generateClientName
 } from '../../services/clientGalleryService';
-import { sendCredentialsEmail } from '../../services/emailService';
 import { DropZone } from '../ImageUpload/DropZone';
 import { CloudinaryService } from '../../services/cloudinaryService';
 import {
   Save,
   X,
   Mail,
-  Eye,
-  EyeOff,
   Copy,
   CheckCircle,
   RefreshCw,
@@ -79,44 +74,17 @@ export const ClientGalleryForm: React.FC<ClientGalleryFormProps> = ({
     setTimeout(() => setCopiedCode(false), 2000);
   };
 
-  const handleImageUpload = async (newImages: CloudinaryImage[]) => {
-  setUploadedImages(prev => [...prev, ...newImages]);
-  const imageIds = newImages.map(img => img.public_id);
-  
-  setFormData(prev => ({
-    ...prev,
-    images: [...prev.images, ...imageIds],
-    cover_image: prev.cover_image || imageIds[0]
-  }));
+  const handleImageUpload = (newImages: CloudinaryImage[]) => {
+    setUploadedImages(prev => [...prev, ...newImages]);
+    const imageIds = newImages.map(img => img.public_id);
+    setFormData(prev => ({
+      ...prev,
+      images: [...prev.images, ...imageIds],
+      cover_image: prev.cover_image || imageIds[0]
+    }));
+  };
 
-  // 🆕 Save images to database if gallery already exists
-  if (gallery?.id) {
-    try {
-      const imagesToSave = newImages.map((img, index) => ({
-        gallery_id: gallery.id,
-        image_url: cloudinaryService.getOptimizedUrl(img.public_id, {}),
-        thumbnail_url: cloudinaryService.getOptimizedUrl(img.public_id, { width: 400, height: 400, crop: 'fill' }),
-        order_index: formData.images.length + index
-      }));
-
-      await fetch('/api/admin/client_images', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-admin-token': import.meta.env.VITE_ADMIN_TOKEN || ''
-        },
-        body: JSON.stringify(imagesToSave)
-      });
-    } catch (err) {
-      console.error('Error saving images to database:', err);
-    }
-  }
-};
-
-// THIS IS THE NEW, FIXED handleSubmit FUNCTION.
-// Paste this over the old one.
-
-const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
 
@@ -125,80 +93,40 @@ const handleSubmit = async (e: React.FormEvent) => {
       return;
     }
 
-    if (formData.images.length === 0) {
+    if (formData.images.length === 0 && uploadedImages.length === 0) {
       setError('Моля качете поне една снимка');
       return;
     }
 
+    setSaving(true);
     try {
-      setSaving(true);
-
-      // This is the new line that fixes the date issue
-      const galleryData = {
+      const galleryDataToSave = {
         ...formData,
         wedding_date: formData.wedding_date || null,
         welcome_message: formData.welcome_message || null,
         admin_notes: formData.admin_notes || null,
+        images: [...formData.images, ...uploadedImages.map(img => img.public_id)]
       };
 
       let savedGallery: ClientGallery;
 
-      if (gallery) {
-          savedGallery = await updateClientGallery(gallery.id, galleryData);
+      if (gallery?.id) {
+        savedGallery = await updateClientGallery(gallery.id, galleryDataToSave);
       } else {
-          const { access_code, ...newGalleryData } = galleryData;
-          const clientName = generateClientName(galleryData.bride_name, galleryData.groom_name);
-          savedGallery = await createClientGallery({
-              ...newGalleryData,
-              client_name: clientName
-          } as any);
-
-          if (uploadedImages.length > 0) {
-              const imagesToSave = uploadedImages.map((img, index) => ({
-                  gallery_id: savedGallery.id,
-                  image_url: cloudinaryService.getOptimizedUrl(img.public_id, {}),
-                  thumbnail_url: cloudinaryService.getOptimizedUrl(img.public_id, { width: 400, height: 400, crop: 'fill' }),
-                  order_index: index
-              }));
-
-              // Note: This fetch call assumes a backend API endpoint.
-              // If you have no backend, this part might need to be replaced
-              // with a direct call to a Supabase service like in GalleryDetailsModal.
-              await fetch('/api/admin/client_images', {
-                  method: 'POST',
-                  headers: {
-                      'Content-Type': 'application/json',
-                      'x-admin-token': import.meta.env.VITE_ADMIN_TOKEN || ''
-                  },
-                  body: JSON.stringify(imagesToSave)
-              });
-          }
+        const clientName = generateClientName(galleryDataToSave.bride_name, galleryDataToSave.groom_name);
+        savedGallery = await createClientGallery({
+          ...galleryDataToSave,
+          client_name: clientName,
+          access_code: generateAccessCode() // Generate access code on creation
+        } as any);
       }
 
       onSave(savedGallery);
+
     } catch (err) {
       console.error('Error saving gallery:', err);
-      setError(err instanceof Error ? err.message : 'Failed to save gallery');
-    } finally {
-      setSaving(false);
-    }
-  };
-
-    await fetch('/api/admin/client_images', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-admin-token': import.meta.env.VITE_ADMIN_TOKEN || ''
-      },
-      body: JSON.stringify(imagesToSave)
-    });
-  }
-}
-
-      onSave(savedGallery);
-    } catch (err) {
-      console.error('Error saving gallery:', err);
-      setError(err instanceof Error ? err.message : 'Failed to save gallery');
+      const errorMessage = err instanceof Error ? err.message : 'Failed to save gallery. Please check the console.';
+      setError(errorMessage);
     } finally {
       setSaving(false);
     }
