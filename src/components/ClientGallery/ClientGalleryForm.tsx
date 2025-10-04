@@ -114,8 +114,7 @@ export const ClientGalleryForm: React.FC<ClientGalleryFormProps> = ({
         wedding_date: formData.wedding_date || null,
         welcome_message: formData.welcome_message || null,
         admin_notes: formData.admin_notes || null,
-        images: allImageIds,
-        uploadedImages: uploadedImages
+        images: allImageIds
       };
 
       let savedGallery: ClientGallery;
@@ -131,7 +130,7 @@ export const ClientGalleryForm: React.FC<ClientGalleryFormProps> = ({
         } as any);
       }
 
-      console.log(`✅ Gallery saved with ${uploadedImages.length} images`);
+      console.log(`✅ Gallery saved successfully`);
 
       setUploadedImages([]);
       onSave(savedGallery);
