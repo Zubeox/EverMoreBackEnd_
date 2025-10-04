@@ -47,3 +47,46 @@ export interface GallerySession {
   accessed_at: string;
   expires_at: string;
 }
+
+export interface CloudinaryImage {
+  public_id: string;
+  secure_url: string;
+  url: string;
+  format: string;
+  bytes: number;
+  width?: number;
+  height?: number;
+  created_at?: string;
+}
+
+export interface ClientImage {
+  id: string;
+  gallery_id: string;
+  image_url: string;
+  thumbnail_url: string | null;
+  title: string | null;
+  order_index: number;
+  created_at: string;
+}
+
+export interface UploadResult {
+  success: boolean;
+  data?: CloudinaryImage;
+  error?: string;
+}
+
+export interface ClientGalleryStats {
+  totalViews: number;
+  uniqueVisitors: number;
+  totalDownloads: number;
+  totalFavorites: number;
+  lastAccessed: string | null;
+  daysUntilExpiration: number;
+}
+
+export interface ProcessingResult {
+  file: File;
+  originalSize: number;
+  processedSize: number;
+  compressionRatio: number;
+}

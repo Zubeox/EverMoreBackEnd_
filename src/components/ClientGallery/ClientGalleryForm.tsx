@@ -9,6 +9,8 @@ import {
   generateClientName,
   generateAccessCode
 } from '../../services/clientGalleryService';
+import { createImage } from '../../services/clientImageService';
+import { supabaseAdmin } from '../../lib/supabaseClient';
 import { DropZone } from '../ImageUpload/DropZone';
 import { CloudinaryService } from '../../services/cloudinaryService';
 import {
@@ -139,6 +141,36 @@ export const ClientGalleryForm: React.FC<ClientGalleryFormProps> = ({
         } as any);
       }
 
+      if (uploadedImages.length > 0 && savedGallery?.id) {
+        try {
+          const { data: existingImages } = await supabaseAdmin
+            .from('client_images')
+            .select('order_index')
+            .eq('gallery_id', savedGallery.id)
+            .order('order_index', { ascending: false })
+            .limit(1);
+
+          const startOrderIndex = (existingImages?.[0]?.order_index ?? -1) + 1;
+
+          for (let i = 0; i < uploadedImages.length; i++) {
+            const cloudinaryImage = uploadedImages[i];
+
+            await createImage({
+              gallery_id: savedGallery.id,
+              image_url: cloudinaryImage.secure_url,
+              thumbnail_url: cloudinaryImage.secure_url,
+              title: null,
+              order_index: startOrderIndex + i
+            });
+          }
+
+          console.log(`✅ Successfully saved ${uploadedImages.length} images to database`);
+        } catch (imageError) {
+          console.error('❌ Error saving images to database:', imageError);
+        }
+      }
+
+      setUploadedImages([]);
       onSave(savedGallery);
 
     } catch (err) {
