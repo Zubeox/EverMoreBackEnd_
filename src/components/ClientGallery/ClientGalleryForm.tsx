@@ -76,11 +76,17 @@ export const ClientGalleryForm: React.FC<ClientGalleryFormProps> = ({
   };
 
   const handleImageUpload = (newImages: CloudinaryImage[]) => {
-    setUploadedImages(prev => [...prev, ...newImages]);
     const imageIds = newImages.map(img => img.public_id);
+    
+    setUploadedImages(prev => {
+        const allUploaded = [...prev, ...newImages];
+        const uniqueUploaded = allUploaded.filter((v, i, a) => a.findIndex(t => (t.public_id === v.public_id)) === i);
+        return uniqueUploaded;
+    });
+
     setFormData(prev => {
         const combinedImages = [...prev.images, ...imageIds];
-        const uniqueImages = [...new Set(combinedImages)]; // This line removes duplicates
+        const uniqueImages = [...new Set(combinedImages)];
 
         return {
             ...prev,
@@ -88,7 +94,7 @@ export const ClientGalleryForm: React.FC<ClientGalleryFormProps> = ({
             cover_image: prev.cover_image || imageIds[0]
         };
     });
-  }; // <-- This brace was missing, causing the error.
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
