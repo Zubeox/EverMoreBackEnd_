@@ -7,7 +7,7 @@ This guide explains how to set up the complete database schema for your photogra
 Add the following to your `.env` file:
 
 ```env
-VITE_SUPABASE_URL=https://0ec90b57d6e95fcbda19832f.supabase.co
+VITE_SUPABASE_URL=https://kkkdvshjcxicupptpixs.supabase.co
 VITE_SUPABASE_ANON_KEY=<your-anon-key>
 VITE_SUPABASE_SERVICE_ROLE_KEY=<your-service-role-key>  # ⚠️ REQUIRED - Get this from Supabase Dashboard
 ```
