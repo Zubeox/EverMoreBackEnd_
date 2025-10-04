@@ -1,5 +1,4 @@
-// ✅ Load environment variables
-require('dotenv').config({ path: __dirname + '/.env' });
+require('dotenv').config();
 
 const analyticsRouter = require('./routes/analytics.ts').default;
 const express = require('express');
@@ -9,31 +8,25 @@ const { createClient } = require('@supabase/supabase-js');
 const emailRoutes = require('./routes/email.cjs');
 
 const PORT = process.env.PORT || 4000;
-const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
-const SUPABASE_SERVICE_KEY =
-  process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_SERVICE_ROLE_KEY;
-const ADMIN_TOKEN =
-  process.env.ADMIN_TOKEN || process.env.SUPABASE_ADMIN_TOKEN;
+const SUPABASE_URL = process.env.VITE_SUPABASE_URL;
+const SUPABASE_SERVICE_KEY = process.env.VITE_SUPABASE_SERVICE_ROLE_KEY;
+const ADMIN_TOKEN = process.env.ADMIN_TOKEN;
 
 if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) {
-  console.error('❌ Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY in environment');
+  console.error('❌ Missing VITE_SUPABASE_URL or VITE_SUPABASE_SERVICE_ROLE_KEY in environment');
   process.exit(1);
 }
 
 if (!ADMIN_TOKEN) {
-  console.warn(
-    '⚠️  Warning: ADMIN_TOKEN not set. Admin endpoints will require X-Admin-Token header to match this value.'
-  );
+  console.warn('⚠️  Warning: ADMIN_TOKEN not set. Using default token.');
 }
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY, {
-  auth: { autoRefreshToken: false, persistSession: false },
-  headers: { 'bypass-rls': 'true' }
+  auth: { autoRefreshToken: false, persistSession: false }
 });
 
 const app = express();
 
-// ✅ Enable CORS for the frontend origin
 app.use(
   cors({
     origin: ['http://localhost:5173', 'http://localhost:5174'],
@@ -43,13 +36,10 @@ app.use(
 
 app.use(bodyParser.json());
 
-// ✅ Email routes
 app.use('/api/email', emailRoutes);
 
-// ✅ Analytics router (handles POST + PATCH for analytics)
 app.use('/api/client/analytics', analyticsRouter);
 
-// ✅ Admin token middleware
 function requireAdmin(req, res, next) {
   const token = req.header('x-admin-token');
   if (!ADMIN_TOKEN)
@@ -59,9 +49,6 @@ function requireAdmin(req, res, next) {
   next();
 }
 
-// -----------------------------------------------------------------------------
-// PUBLIC GALLERIES
-// -----------------------------------------------------------------------------
 app.get('/api/galleries', async (req, res) => {
   try {
     const { data, error } = await supabase
@@ -75,9 +62,6 @@ app.get('/api/galleries', async (req, res) => {
   }
 });
 
-// -----------------------------------------------------------------------------
-// ADMIN GALLERIES
-// -----------------------------------------------------------------------------
 app.post('/api/admin/galleries', requireAdmin, async (req, res) => {
   try {
     const payload = req.body;
@@ -112,9 +96,6 @@ app.delete('/api/admin/galleries/:id', requireAdmin, async (req, res) => {
   }
 });
 
-// -----------------------------------------------------------------------------
-// ADMIN CONTACTS
-// -----------------------------------------------------------------------------
 app.get('/api/admin/contacts', requireAdmin, async (req, res) => {
   try {
     const { data, error } = await supabase.from('contacts').select('*').order('created_at', { ascending: false });
@@ -132,9 +113,6 @@ app.delete('/api/admin/contacts/:id', requireAdmin, async (req, res) => {
   } catch (err) { res.status(500).json({ error: String(err) }); }
 });
 
-// -----------------------------------------------------------------------------
-// ADMIN CLIENT GALLERIES
-// -----------------------------------------------------------------------------
 app.post('/api/admin/client_galleries', requireAdmin, async (req, res) => {
   try {
     const { data, error } = await supabase.from('client_galleries').insert(req.body).select().single();
@@ -161,9 +139,6 @@ app.delete('/api/admin/client_galleries/:id', requireAdmin, async (req, res) => 
   } catch (err) { res.status(500).json({ error: String(err) }); }
 });
 
-// -----------------------------------------------------------------------------
-// ADMIN CLIENT IMAGES
-// -----------------------------------------------------------------------------
 app.post('/api/admin/client_images', requireAdmin, async (req, res) => {
   try {
     const { data, error } = await supabase.from('client_images').insert(req.body).select();
@@ -204,9 +179,6 @@ app.delete('/api/admin/client_images/:id', requireAdmin, async (req, res) => {
   } catch (err) { res.status(500).json({ error: String(err) }); }
 });
 
-// -----------------------------------------------------------------------------
-// CLIENT FAVORITES / DOWNLOADS / VIEWS
-// -----------------------------------------------------------------------------
 app.post('/api/client/favorites', async (req, res) => {
   try {
     const { gallery_id, client_email, image_public_id } = req.body || {};
@@ -252,9 +224,6 @@ app.post('/api/client/galleries/:id/increment_view', async (req, res) => {
   } catch (err) { res.status(500).json({ error: String(err) }); }
 });
 
-// -----------------------------------------------------------------------------
-// PARTNERS
-// -----------------------------------------------------------------------------
 app.post('/api/admin/partners', requireAdmin, async (req, res) => {
   try {
     const { data, error } = await supabase.from('partners').insert(req.body).select().single();
@@ -281,7 +250,17 @@ app.delete('/api/admin/partners/:id', requireAdmin, async (req, res) => {
   } catch (err) { res.status(500).json({ error: String(err) }); }
 });
 
-// ✅ Start server
+app.get('/health', (req, res) => {
+  res.json({ 
+    status: 'ok', 
+    timestamp: new Date().toISOString(),
+    supabase: !!(SUPABASE_URL && SUPABASE_SERVICE_KEY),
+    email: !!process.env.RESEND_API_KEY
+  });
+});
+
 app.listen(PORT, () => {
-  console.log(`✅ Admin server listening on http://localhost:${PORT}`);
+  console.log(`✅ Backend server listening on http://localhost:${PORT}`);
+  console.log(`📧 Email service: ${process.env.RESEND_API_KEY ? 'Enabled' : 'Disabled (set RESEND_API_KEY to enable)'}`);
+  console.log(`🗄️  Database: ${SUPABASE_URL ? 'Connected' : 'Not configured'}`);
 });
