@@ -41,7 +41,7 @@ export async function updateImage(id: string, updates: Partial<ClientImage>): Pr
 }
 
 export async function deleteImage(id: string): Promise<void> {
-  const { error } = await supabaseAdmin
+  const { error } = await supabaseClient
     .from('client_images')
     .delete()
     .eq('id', id);
