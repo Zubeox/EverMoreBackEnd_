@@ -1,3 +1,5 @@
+// ClientGalleryForm.tsx
+
 import React, { useState, useEffect } from 'react';
 import { ClientGallery, CloudinaryImage } from '../../types';
 import {
@@ -40,7 +42,7 @@ export const ClientGalleryForm: React.FC<ClientGalleryFormProps> = ({
     gallery_slug: gallery?.gallery_slug || '',
     access_code: gallery?.access_code || '',
     cover_image: gallery?.cover_image || '',
-    images: gallery?.images || [],
+    images: [...new Set(gallery?.images || [])],
     expiration_date: gallery?.expiration_date || new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString(),
     status: (gallery?.status || 'active') as 'active' | 'expired' | 'archived' | 'draft',
     allow_downloads: gallery?.allow_downloads ?? true,
@@ -77,22 +79,24 @@ export const ClientGalleryForm: React.FC<ClientGalleryFormProps> = ({
 
   const handleImageUpload = (newImages: CloudinaryImage[]) => {
     const imageIds = newImages.map(img => img.public_id);
-    
+
     setUploadedImages(prev => {
-        const allUploaded = [...prev, ...newImages];
-        const uniqueUploaded = allUploaded.filter((v, i, a) => a.findIndex(t => (t.public_id === v.public_id)) === i);
-        return uniqueUploaded;
+      const allUploaded = [...prev, ...newImages];
+      const uniqueUploaded = allUploaded.filter(
+        (v, i, a) => a.findIndex(t => t.public_id === v.public_id) === i
+      );
+      return uniqueUploaded;
     });
 
     setFormData(prev => {
-        const combinedImages = [...prev.images, ...imageIds];
-        const uniqueImages = [...new Set(combinedImages)];
+      const combinedImages = [...prev.images, ...imageIds];
+      const uniqueImages = [...new Set(combinedImages)];
 
-        return {
-            ...prev,
-            images: uniqueImages,
-            cover_image: prev.cover_image || imageIds[0]
-        };
+      return {
+        ...prev,
+        images: uniqueImages,
+        cover_image: prev.cover_image || imageIds[0]
+      };
     });
   };
 
@@ -113,7 +117,7 @@ export const ClientGalleryForm: React.FC<ClientGalleryFormProps> = ({
     setSaving(true);
     try {
       const allImageIds = [...new Set([...formData.images, ...uploadedImages.map(img => img.public_id)])];
-      
+
       const galleryDataToSave = {
         ...formData,
         wedding_date: formData.wedding_date || null,
@@ -324,13 +328,13 @@ export const ClientGalleryForm: React.FC<ClientGalleryFormProps> = ({
 
         <DropZone onUploadComplete={handleImageUpload} />
 
-        {formData.images.length > 0 && (
+        {[...new Set(formData.images)].length > 0 && (
           <div className="mt-6">
             <p className="text-sm text-boho-rust mb-3">
-              {formData.images.length} {formData.images.length === 1 ? 'снимка' : 'снимки'} качени
+              {[...new Set(formData.images)].length} снимки качени
             </p>
             <div className="grid grid-cols-4 md:grid-cols-6 gap-4">
-              {formData.images.map((imageId) => (
+              {[...new Set(formData.images)].map((imageId) => (
                 <div
                   key={imageId}
                   className={`aspect-square rounded-boho overflow-hidden border-2 cursor-pointer transition-all ${
