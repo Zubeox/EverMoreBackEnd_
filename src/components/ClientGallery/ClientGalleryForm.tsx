@@ -133,7 +133,7 @@ export const ClientGalleryForm: React.FC<ClientGalleryFormProps> = ({
 
       if (uploadedImages.length > 0 && savedGallery?.id) {
         try {
-          const { data: existingImages } = await supabaseAdmin
+          const { data: existingImages } = await supabaseClient
             .from('client_images')
             .select('order_index')
             .eq('gallery_id', savedGallery.id)
