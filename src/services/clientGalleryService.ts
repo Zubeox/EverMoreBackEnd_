@@ -1,19 +1,7 @@
-export async function createClientGallery(
-  gallery: Omit<ClientGallery, 'id' | 'created_at' | 'updated_at' | 'access_code'>
-): Promise<ClientGallery> {
-  console.log('📝 Gallery data received:', gallery); // Add this line
-  console.log('📝 access_password value:', gallery.access_password); // And this
-  
-  const { data, error } = await supabaseAdmin
-    .from('client_galleries')
-    .insert(gallery as any)
-    .select('*')
-    .single();
+// src/services/clientGalleryService.ts
+// Handles admin and client gallery CRUD, analytics, and authentication flows.
 
-  if (error) throw error;
-  return data;
-}
-import { supabaseAdmin } from '../lib/supabaseClient'; // ✅ corrected import
+import { supabaseAdmin } from '../lib/supabaseClient';
 import {
   ClientGallery,
   ClientGalleryAnalytics,
@@ -79,6 +67,9 @@ export async function getClientGalleryBySlug(slug: string): Promise<ClientGaller
 export async function createClientGallery(
   gallery: Omit<ClientGallery, 'id' | 'created_at' | 'updated_at' | 'access_code'>
 ): Promise<ClientGallery> {
+  console.log('📝 Gallery data received:', gallery);
+  console.log('📝 access_password value:', gallery.access_password);
+  
   const { data, error } = await supabaseAdmin
     .from('client_galleries')
     .insert(gallery as any)
