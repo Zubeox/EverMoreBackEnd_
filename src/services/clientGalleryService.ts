@@ -1,152 +1,20 @@
-// src/services/clientGalleryService.ts
-import { supabaseClient } from '../lib/supabaseClient'; // Use regular client, not admin
-import {
-  ClientGallery,
-  ClientGalleryStats
-} from '../types';
+import { supabase, isSupabaseConfigured } from '../lib/supabase';
+import type { ClientGallery } from '../types';
 
-// Get the Edge Function URL
-const EDGE_FUNCTION_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/client-galleries`;
+const SESSION_STORAGE_KEY = 'client_gallery_session';
 
-// Helper to make authenticated requests to Edge Function
-async function callEdgeFunction(path: string = '', options: RequestInit = {}) {
-  const { data: { session } } = await supabaseClient.auth.getSession();
-  
-  const url = path ? `${EDGE_FUNCTION_URL}${path}` : EDGE_FUNCTION_URL;
-  
-  const response = await fetch(url, {
-    ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${session?.access_token || import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-      ...options.headers,
-    },
-  });
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.error || 'Request failed');
-  }
-
-  return response.json();
+export interface GallerySession {
+  gallery_id: string;
+  gallery_slug?: string;
+  client_email: string;
+  code: string;
+  accessed_at: string;
+  expires_at: string;
 }
 
-// ============================
-// CRUD OPERATIONS
-// ============================
-
-export async function getClientGalleries(): Promise<ClientGallery[]> {
-  try {
-    const data = await callEdgeFunction();
-    return (data || []).map((gallery: any) => ({
-      ...gallery,
-      images: gallery.images || []
-    }));
-  } catch (error) {
-    console.error('Error fetching client galleries:', error);
-    return [];
-  }
-}
-
-export async function getClientGalleryById(id: string): Promise<ClientGallery | null> {
-  try {
-    return await callEdgeFunction(`?id=${id}`);
-  } catch (error) {
-    console.error('Error fetching client gallery:', error);
-    return null;
-  }
-}
-
-export async function getClientGalleryBySlug(slug: string): Promise<ClientGallery | null> {
-  try {
-    // This one stays with direct Supabase call since it's public data
-    const { data, error } = await supabaseClient
-      .from('client_galleries')
-      .select('*')
-      .eq('gallery_slug', slug)
-      .maybeSingle();
-
-    if (error) throw error;
-    return data;
-  } catch (error) {
-    console.error('Error fetching client gallery by slug:', error);
-    return null;
-  }
-}
-
-export async function createClientGallery(
-  gallery: Omit<ClientGallery, 'id' | 'created_at' | 'updated_at' | 'access_code'>
-): Promise<ClientGallery> {
-  return callEdgeFunction('', {
-    method: 'POST',
-    body: JSON.stringify(gallery),
-  });
-}
-
-export async function updateClientGallery(
-  id: string,
-  updates: Partial<ClientGallery>
-): Promise<ClientGallery> {
-  return callEdgeFunction(`?id=${id}`, {
-    method: 'PUT',
-    body: JSON.stringify(updates),
-  });
-}
-
-export async function deleteClientGallery(id: string): Promise<void> {
-  await callEdgeFunction(`?id=${id}`, {
-    method: 'DELETE',
-  });
-}
-
-// ============================
-// UTILITY GENERATORS (Keep these local)
-// ============================
-
-export async function generateUniqueSlug(brideName: string, groomName: string): Promise<string> {
-  const baseSlug = `${brideName}-${groomName}`
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '');
-
-  let slug = baseSlug;
-  let counter = 1;
-
-  while (true) {
-    const existing = await getClientGalleryBySlug(slug);
-    if (!existing) break;
-    slug = `${baseSlug}-${counter}`;
-    counter++;
-  }
-
-  return slug;
-}
-
-export function generateRandomPassword(length: number = 8): string {
-  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789';
-  let password = '';
-  for (let i = 0; i < length; i++) {
-    password += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  return password;
-}
-
-export function generateAccessCode(length: number = 8): string {
-  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-  let code = '';
-  for (let i = 0; i < length; i++) {
-    code += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  return code;
-}
-
-export function generateClientName(brideName: string, groomName: string): string {
-  return `${brideName} & ${groomName}`;
-}
-// ============================
-// CLIENT AUTHENTICATION
-// ============================
-
+/**
+ * Authenticate client with email and access code
+ */
 export async function authenticateClient({
   email,
   slug,
@@ -156,95 +24,206 @@ export async function authenticateClient({
   slug?: string;
   code: string;
 }): Promise<{ success: boolean; gallery?: ClientGallery; error?: string }> {
+  if (!isSupabaseConfigured) {
+    return { success: false, error: 'Database not configured' };
+  }
+
+  if (!email && !slug) {
+    return { success: false, error: 'Either email or slug must be provided' };
+  }
+
   try {
-    let query = supabaseClient
+    // Build the query
+    let query = supabase
       .from('client_galleries')
       .select('*')
-      .eq('status', 'active')
-      .gt('expiration_date', new Date().toISOString());
+      .eq('access_code', code.toUpperCase().trim())
+      .eq('status', 'active');
 
+    // Add email or slug condition
     if (email) {
       query = query.eq('client_email', email.toLowerCase().trim());
-    }
-    if (slug) {
+    } else if (slug) {
       query = query.eq('gallery_slug', slug);
     }
 
-    query = query.eq('access_code', code.toUpperCase().trim());
+    const { data, error: queryError } = await query.maybeSingle();
 
-    const { data: gallery, error } = await query.maybeSingle();
-
-    if (error || !gallery) {
-      return { success: false, error: 'Invalid credentials or gallery expired' };
+    if (queryError) {
+      console.error('Authentication error:', queryError);
+      return { success: false, error: 'Authentication failed' };
     }
 
+    if (!data) {
+      return { success: false, error: 'Invalid credentials' };
+    }
+
+    const gallery = data as ClientGallery;
+
+    // Check if gallery is expired
+    if (gallery.expiration_date && new Date(gallery.expiration_date) < new Date()) {
+      return { success: false, error: 'Gallery has expired' };
+    }
+
+    // Update view count (fire and forget)
+    supabase
+      .from('client_galleries')
+      .update({ 
+        view_count: (gallery.view_count || 0) + 1,
+        last_accessed_at: new Date().toISOString()
+      })
+      .eq('id', gallery.id)
+      .then(({ error }) => {
+        if (error) console.warn('Could not update view count:', error);
+      });
+
+    // Create session
+    createSession(gallery, code);
+
     return { success: true, gallery };
-  } catch (err: any) {
-    console.error('Error authenticating client:', err);
-    return { success: false, error: err.message || 'Authentication failed' };
+  } catch (err) {
+    console.error('Unexpected authentication error:', err);
+    return { success: false, error: 'An unexpected error occurred' };
   }
 }
 
-// ============================
-// ANALYTICS / STATS
-// ============================
+/**
+ * Get favorites for a gallery
+ */
+export async function getFavorites(galleryId: string, clientEmail: string): Promise<string[]> {
+  if (!isSupabaseConfigured) return [];
 
-export async function getGalleryStats(galleryId: string): Promise<ClientGalleryStats> {
   try {
-    const gallery = await getClientGalleryById(galleryId);
-    if (!gallery) throw new Error("Gallery not found");
-
-    const { count: uniqueVisitors } = await supabaseClient
-      .from('client_gallery_analytics')
-      .select('client_email', { count: 'exact', head: true })
-      .eq('gallery_id', galleryId);
-
-    const { count: totalDownloads } = await supabaseClient
-      .from('client_gallery_downloads')
-      .select('*', { count: 'exact', head: true })
-      .eq('gallery_id', galleryId);
-
-    const { count: totalFavorites } = await supabaseClient
+    const { data, error } = await supabase
       .from('client_gallery_favorites')
-      .select('*', { count: 'exact', head: true })
-      .eq('gallery_id', galleryId);
+      .select('image_public_id')
+      .eq('gallery_id', galleryId)
+      .eq('client_email', clientEmail);
 
-    const expirationDate = new Date(gallery.expiration_date);
-    const daysUntilExpiration = Math.ceil((expirationDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+    if (error) {
+      console.error('Error fetching favorites:', error);
+      return [];
+    }
 
-    return {
-      totalViews: gallery.view_count || 0,
-      uniqueVisitors: uniqueVisitors || 0,
-      totalDownloads: totalDownloads || 0,
-      totalFavorites: totalFavorites || 0,
-      lastAccessed: gallery.last_accessed_at || null,
-      daysUntilExpiration: Math.max(0, daysUntilExpiration)
-    };
-  } catch (error) {
-    console.error('Error fetching gallery stats:', error);
-    return {
-      totalViews: 0,
-      uniqueVisitors: 0,
-      totalDownloads: 0,
-      totalFavorites: 0,
-      lastAccessed: null,
-      daysUntilExpiration: 0
-    };
+    return (data || []).map((fav: any) => fav.image_public_id);
+  } catch (err) {
+    console.error('Unexpected error fetching favorites:', err);
+    return [];
   }
 }
 
-// ============================
-// EXTEND EXPIRATION
-// ============================
+/**
+ * Toggle favorite status for an image
+ */
+export async function toggleFavorite(
+  galleryId: string,
+  clientEmail: string,
+  imageId: string,
+  isFavorite: boolean
+): Promise<boolean> {
+  if (!isSupabaseConfigured) return false;
 
-export async function extendExpiration(galleryId: string, days: number): Promise<ClientGallery> {
-  const gallery = await getClientGalleryById(galleryId);
-  if (!gallery) throw new Error('Gallery not found');
+  try {
+    if (isFavorite) {
+      // Remove favorite
+      const { error } = await supabase
+        .from('client_gallery_favorites')
+        .delete()
+        .eq('gallery_id', galleryId)
+        .eq('client_email', clientEmail)
+        .eq('image_public_id', imageId);
 
-  const currentExpiration = new Date(gallery.expiration_date);
-  const newExpiration = new Date(currentExpiration.getTime() + days * 24 * 60 * 60 * 1000);
+      if (error) {
+        console.error('Error removing favorite:', error);
+        return false;
+      }
+    } else {
+      // Add favorite
+      const { error } = await supabase
+        .from('client_gallery_favorites')
+        .insert({
+          gallery_id: galleryId,
+          client_email: clientEmail,
+          image_public_id: imageId
+        });
 
-  return updateClientGallery(galleryId, {
-    expiration_date: newExpiration.toISOString()
-  });
+      if (error) {
+        console.error('Error adding favorite:', error);
+        return false;
+      }
+    }
+
+    return true;
+  } catch (err) {
+    console.error('Unexpected error toggling favorite:', err);
+    return false;
+  }
+}
+
+/**
+ * Create a client session
+ */
+export function createSession(gallery: ClientGallery, code: string): void {
+  const session: GallerySession = {
+    gallery_id: gallery.id,
+    gallery_slug: gallery.gallery_slug,
+    client_email: gallery.client_email,
+    code: code.toUpperCase().trim(),
+    accessed_at: new Date().toISOString(),
+    expires_at: new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString()
+  };
+
+  sessionStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(session));
+}
+
+/**
+ * Get the current session
+ */
+export function getSession(): GallerySession | null {
+  try {
+    const sessionData = sessionStorage.getItem(SESSION_STORAGE_KEY);
+    if (!sessionData) return null;
+
+    const session: GallerySession = JSON.parse(sessionData);
+
+    // Check if session is expired
+    if (new Date(session.expires_at) < new Date()) {
+      clearSession();
+      return null;
+    }
+
+    return session;
+  } catch (err) {
+    console.error('Error reading session:', err);
+    return null;
+  }
+}
+
+/**
+ * Clear the current session
+ */
+export function clearSession(): void {
+  sessionStorage.removeItem(SESSION_STORAGE_KEY);
+}
+
+/**
+ * Get days until gallery expiration
+ */
+export function getDaysUntilExpiration(gallery: ClientGallery): number | null {
+  if (!gallery.expiration_date) return null;
+
+  const expirationDate = new Date(gallery.expiration_date);
+  const today = new Date();
+  const diffTime = expirationDate.getTime() - today.getTime();
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+  return diffDays > 0 ? diffDays : 0;
+}
+
+/**
+ * Check if gallery is expired
+ */
+export function isGalleryExpired(gallery: ClientGallery): boolean {
+  if (!gallery.expiration_date) return false;
+  return new Date(gallery.expiration_date) < new Date();
 }
